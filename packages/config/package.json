@@ -1,0 +1,14 @@
+{
+  "name": "@tracker/config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./eslint.config.cjs",
+  "files": ["eslint.config.cjs", "prettier.config.cjs"],
+  "dependencies": {
+    "eslint": "^9.16.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.0"
+  }
+}
