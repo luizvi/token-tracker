@@ -1,0 +1,34 @@
+{
+  "pricings": [
+    {
+      "model": "claude-opus-4-7",
+      "input_per_mtok": 15,
+      "output_per_mtok": 75,
+      "cache_read_per_mtok": 1.5,
+      "cache_creation_per_mtok": 18.75,
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null,
+      "source": "anthropic-pricing-page"
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "input_per_mtok": 3,
+      "output_per_mtok": 15,
+      "cache_read_per_mtok": 0.3,
+      "cache_creation_per_mtok": 3.75,
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null,
+      "source": "anthropic-pricing-page"
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "input_per_mtok": 0.8,
+      "output_per_mtok": 4,
+      "cache_read_per_mtok": 0.08,
+      "cache_creation_per_mtok": 1,
+      "valid_from": "2025-10-01T00:00:00Z",
+      "valid_until": null,
+      "source": "anthropic-pricing-page"
+    }
+  ]
+}
