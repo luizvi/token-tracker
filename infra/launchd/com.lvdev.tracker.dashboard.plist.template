@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.lvdev.tracker.dashboard</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{NODE_BIN}}</string>
+    <string>{{TRACKER_ROOT}}/apps/dashboard/.next/standalone/apps/dashboard/server.js</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>{{TRACKER_ROOT}}/apps/dashboard</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>Nice</key>
+  <integer>10</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>{{TRACKER_ROOT}}/data/logs/dashboard.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>{{TRACKER_ROOT}}/data/logs/dashboard.err.log</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>{{HOME}}</string>
+    <key>NODE_ENV</key>
+    <string>production</string>
+    <key>TRACKER_ROOT</key>
+    <string>{{TRACKER_ROOT}}</string>
+    <key>HOSTNAME</key>
+    <string>127.0.0.1</string>
+    <key>PORT</key>
+    <string>4833</string>
+    <key>ANTHROPIC_API_KEY</key>
+    <string>{{ANTHROPIC_API_KEY}}</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+</dict>
+</plist>
