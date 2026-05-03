@@ -16,7 +16,8 @@
     "./time": "./dist/time.js",
     "./refiner/haiku-client": "./dist/refiner/haiku-client.js",
     "./refiner/refiner": "./dist/refiner/refiner.js",
-    "./estimator/estimator": "./dist/estimator/estimator.js"
+    "./estimator/estimator": "./dist/estimator/estimator.js",
+    "./recalc/recalc": "./dist/recalc/recalc.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
