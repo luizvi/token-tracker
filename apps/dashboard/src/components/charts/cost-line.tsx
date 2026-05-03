@@ -1,14 +1,50 @@
 "use client";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import {
+  AXIS_TICK_STYLE,
+  TOOLTIP_STYLE,
+  TOOLTIP_ITEM_STYLE,
+  TOOLTIP_LABEL_STYLE,
+  TOOLTIP_CURSOR_FILL,
+} from "./chart-theme";
 
-export function CostLine({ data }: { data: Array<{ date: string; cost: number }> }) {
+export function CostLine({
+  data,
+  unit = "$",
+  formatter = (v: number) => `$${v.toFixed(2)}`,
+}: {
+  data: Array<{ date: string; cost: number }>;
+  unit?: string;
+  formatter?: (v: number) => string;
+}) {
   return (
     <ResponsiveContainer width="100%" height={250}>
-      <LineChart data={data}>
-        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-        <YAxis tick={{ fontSize: 11 }} />
-        <Tooltip />
-        <Line type="monotone" dataKey="cost" stroke="#1fe879" strokeWidth={2} dot={false} />
+      <LineChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
+        <defs>
+          <linearGradient id="costLineGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1fe879" stopOpacity={0.4} />
+            <stop offset="100%" stopColor="#1fe879" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke="var(--color-border-primary)" strokeOpacity={0.3} vertical={false} />
+        <XAxis dataKey="date" tick={AXIS_TICK_STYLE} stroke="var(--color-border-primary)" />
+        <YAxis tick={AXIS_TICK_STYLE} stroke="var(--color-border-primary)" tickFormatter={(v) => `${unit}${v}`} />
+        <Tooltip
+          contentStyle={TOOLTIP_STYLE}
+          itemStyle={TOOLTIP_ITEM_STYLE}
+          labelStyle={TOOLTIP_LABEL_STYLE}
+          cursor={{ stroke: "#1fe879", strokeOpacity: 0.3, strokeWidth: 1 }}
+          formatter={(v: number) => [formatter(v), "Custo"]}
+        />
+        <Line
+          type="monotone"
+          dataKey="cost"
+          stroke="#1fe879"
+          strokeWidth={2.5}
+          dot={false}
+          activeDot={{ r: 5, fill: "#1fe879", stroke: "var(--color-bg-card)", strokeWidth: 2 }}
+          fill="url(#costLineGrad)"
+        />
       </LineChart>
     </ResponsiveContainer>
   );

@@ -6,6 +6,10 @@ export function formatBrl(value: number): string {
   return `R$${value.toFixed(value < 1 ? 4 : 2)}`;
 }
 
+export function formatMoney(usd: number, currency: "USD" | "BRL", usdBrl = 5): string {
+  return currency === "BRL" ? formatBrl(usd * usdBrl) : formatUsd(usd);
+}
+
 export function formatDuration(seconds: number): string {
   if (seconds < 60) return `${Math.round(seconds)}s`;
   const m = Math.floor(seconds / 60);
