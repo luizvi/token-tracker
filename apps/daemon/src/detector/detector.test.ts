@@ -73,4 +73,20 @@ describe("processMessages", () => {
     expect(tasks[0]!.tokensCacheCreation).toBe(50);
     close();
   });
+
+  it("calcula time blocks e cost após agregar tokens", async () => {
+    // seed pricing já feito implicitamente pelo seedDatabase no setup? Não — adicionar aqui:
+    const { seedDatabase } = await import("@tracker/db");
+    seedDatabase(db);
+    // Use 2026 timestamp to match seeded pricing (valid_from: 2026-01-01)
+    const ts2026 = Date.parse("2026-05-02T10:00:00Z");
+    await processMessages(db, sessionId, projectId, [
+      { uuid: "u1", role: "user", timestampMs: ts2026, text: "feature x", tokens: undefined },
+      { uuid: "a1", role: "assistant", timestampMs: ts2026 + 1000, text: "ok", model: "claude-sonnet-4-6",
+        tokens: { input: 1000, output: 200, cacheRead: 0, cacheCreation: 0 } },
+    ], DEFAULT_SETTINGS.detection);
+    const t = listTasks(db, { sessionId })[0]!;
+    expect(t.timeTotalSeconds).toBeGreaterThan(0);
+    expect(t.costUsd).toBeGreaterThan(0);
+  });
 });

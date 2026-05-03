@@ -1,9 +1,11 @@
 import {
-  listTasks, createTask, updateTask, closeTask, pauseTask,
+  listTasks, createTask, updateTask, closeTask, pauseTask, getSetting,
   type DbClient, type TaskRow,
 } from "@tracker/db";
 import type { TranscriptMessage } from "@tracker/shared";
+import { calculateTimeBlocks } from "@tracker/shared";
 import { decideBoundary } from "./boundary.js";
+import { recomputeTaskCost } from "../pricing/pricer.js";
 
 interface DetectorSettings {
   gapMinutesBase: number;
@@ -102,6 +104,27 @@ export async function processMessages(
           primaryModel: currentTask.primaryModel ?? msg.model ?? null,
         });
         currentTask = { ...currentTask, ...agg };
+
+        // Compute time blocks and cost after token aggregation
+        const timeCfg = {
+          timePerInputTokenSeconds: getSetting<number>(db, "timePerInputTokenSeconds") ?? 0.5,
+          timePerProcessingOutputTokenSeconds: getSetting<number>(db, "timePerProcessingOutputTokenSeconds") ?? 0.05,
+          timePerReadingTokenSeconds: getSetting<number>(db, "timePerReadingTokenSeconds") ?? 0.15,
+          cacheReadFactor: getSetting<number>(db, "cacheReadFactor") ?? 0.1,
+        };
+        const blocks = calculateTimeBlocks({
+          input: agg.tokensInput,
+          output: agg.tokensOutput,
+          cacheRead: agg.tokensCacheRead,
+          cacheCreation: agg.tokensCacheCreation,
+        }, timeCfg);
+        updateTask(db, currentTask.id, {
+          timeInputSeconds: blocks.inputSeconds,
+          timeProcessingOutputSeconds: blocks.processingOutputSeconds,
+          timeReadingSeconds: blocks.readingSeconds,
+          timeTotalSeconds: blocks.totalSeconds,
+        });
+        recomputeTaskCost(db, currentTask.id);
       }
       lastAssistantTs = msg.timestampMs;
     }
