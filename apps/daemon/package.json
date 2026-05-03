@@ -16,7 +16,9 @@
   "dependencies": {
     "@tracker/db": "workspace:*",
     "@tracker/shared": "workspace:*",
+    "@anthropic-ai/sdk": "^0.92.0",
     "fast-glob": "^3.3.2",
+    "p-throttle": "^8.1.0",
     "undici": "^7.0.0"
   },
   "devDependencies": {
