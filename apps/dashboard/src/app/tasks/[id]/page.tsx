@@ -7,7 +7,7 @@ import { getUsdBrlRate } from "@/lib/currency-rate";
 import { formatMoney, formatDuration, formatTokens, formatRelativeTime } from "@/lib/format";
 import { parseCurrency } from "@/lib/filters";
 import { notFound } from "next/navigation";
-import { readTaskMessages } from "@/lib/transcript";
+import { readTaskMessages, readTaskMessagesFromSegments, type TranscriptSegment } from "@/lib/transcript";
 import { TranscriptViewer, type TranscriptMessageView } from "@/components/transcript-viewer";
 import { TaskActions } from "@/components/task-actions";
 
@@ -33,8 +33,31 @@ export default async function TaskDetailPage({
   const client = task.clientId ? getClientById(db, task.clientId) : null;
 
   let messages: TranscriptMessageView[] = [];
-  if (session?.jsonlPath) {
-    const raw = await readTaskMessages(session.jsonlPath, task.firstMessageUuid, task.lastMessageUuid, 500);
+  let raw: Awaited<ReturnType<typeof readTaskMessages>> = [];
+  if (task.mergedSegments) {
+    try {
+      const parsed = JSON.parse(task.mergedSegments) as Array<{
+        sessionId: string; firstMessageUuid: string | null; lastMessageUuid: string | null;
+      }>;
+      const { getSessionById } = await import("@tracker/db");
+      const segments: TranscriptSegment[] = [];
+      for (const seg of parsed) {
+        const s = getSessionById(db, seg.sessionId);
+        if (s?.jsonlPath) {
+          segments.push({
+            jsonlPath: s.jsonlPath,
+            firstMessageUuid: seg.firstMessageUuid,
+            lastMessageUuid: seg.lastMessageUuid,
+          });
+        }
+      }
+      raw = await readTaskMessagesFromSegments(segments, 1000);
+    } catch { /* fallback abaixo */ }
+  }
+  if (raw.length === 0 && session?.jsonlPath) {
+    raw = await readTaskMessages(session.jsonlPath, task.firstMessageUuid, task.lastMessageUuid, 500);
+  }
+  {
     messages = raw.map((m) => ({
       uuid: m.uuid,
       role: m.role,
@@ -42,6 +65,7 @@ export default async function TaskDetailPage({
       text: m.text,
       model: m.model,
       tokens: m.tokens,
+      toolUses: m.toolUses,
     }));
   }
 
@@ -49,7 +73,7 @@ export default async function TaskDetailPage({
   const assistantMsgsCount = messages.filter((m) => m.role === "assistant").length;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl">
+    <div className="space-y-6 animate-in fade-in duration-300 mx-auto w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">
       <div className="space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
           <span
@@ -89,25 +113,30 @@ export default async function TaskDetailPage({
         {task.description && <p className="text-sm text-text-secondary">{task.description}</p>}
       </div>
 
-      <TaskActions task={task} clients={clients} />
+      <TaskActions task={task} clients={clients} projects={projects} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="card p-3">
           <p className="text-text-muted text-[10px] uppercase tracking-wide">Custo</p>
           <p className="font-mono text-lg mt-0.5">{formatMoney(task.costUsd, currency, rate)}</p>
         </div>
-        <div className="card p-3">
-          <p className="text-text-muted text-[10px] uppercase tracking-wide">Tempo Claude</p>
-          <p className="font-mono text-lg mt-0.5">{formatDuration(task.timeTotalSeconds)}</p>
+        <div className="card p-3" title="Tempo real (relógio) entre primeira e última mensagem">
+          <p className="text-text-muted text-[10px] uppercase tracking-wide">Duração real</p>
+          <p className="font-mono text-lg mt-0.5">
+            {task.endedAt ? formatDuration((task.endedAt - task.startedAt) / 1000) : "em curso"}
+          </p>
         </div>
-        <div className="card p-3">
+        <div className="card p-3" title="Horas humanas estimadas pelo Haiku ou inseridas manualmente">
           <p className="text-text-muted text-[10px] uppercase tracking-wide">Horas humanas</p>
           <p className="font-mono text-lg mt-0.5">
             {task.humanHoursEstimate !== null ? `${task.humanHoursEstimate.toFixed(2)}h` : "—"}
             <span className="text-[10px] text-text-muted ml-1">({task.humanHoursSource})</span>
           </p>
         </div>
-        <div className="card p-3">
+        <div
+          className="card p-3"
+          title="Horas faturáveis = ((tempo Claude + horas humanas) / 2) × billable_factor do cliente. É o que você cobraria do cliente."
+        >
           <p className="text-text-muted text-[10px] uppercase tracking-wide">Faturáveis</p>
           <p className="font-mono text-lg mt-0.5">
             {task.billableHours !== null ? `${task.billableHours.toFixed(2)}h` : "—"}
@@ -150,7 +179,9 @@ export default async function TaskDetailPage({
       </div>
 
       <div className="card p-4 space-y-3">
-        <h3 className="font-semibold text-sm">Tempos derivados</h3>
+        <h3 className="font-semibold text-sm" title="Estimativas calculadas a partir de tokens × fatores configuráveis em /settings (não medidos)">
+          Tempos estimados (por token)
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm font-mono">
           <div>
             <p className="text-text-muted text-[10px] uppercase">Input</p>

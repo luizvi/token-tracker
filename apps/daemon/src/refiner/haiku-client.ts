@@ -3,7 +3,10 @@ import pThrottle from "p-throttle";
 import { redact } from "@tracker/shared";
 
 export interface HaikuClientOptions {
-  apiKey: string;
+  /** Chave normal `sk-ant-...`. Use isto OU authToken. */
+  apiKey?: string;
+  /** OAuth Bearer token do plano Max/Pro (gerado por `claude setup-token`). */
+  authToken?: string;
   model: string;
   requestsPerSecond?: number;
   maxTokens?: number;
@@ -22,7 +25,16 @@ export class HaikuClient {
   private readonly throttledSend: (req: CompleteRequest) => Promise<string>;
 
   constructor(options: HaikuClientOptions) {
-    this.anthropic = new Anthropic({ apiKey: options.apiKey });
+    if (!options.apiKey && !options.authToken) {
+      throw new Error("HaikuClient requires apiKey or authToken");
+    }
+    this.anthropic = options.authToken
+      ? new Anthropic({
+          authToken: options.authToken,
+          // Plano Max/Pro via OAuth exige este beta header.
+          defaultHeaders: { "anthropic-beta": "oauth-2025-04-20" },
+        })
+      : new Anthropic({ apiKey: options.apiKey! });
     this.model = options.model;
     this.defaultMaxTokens = options.maxTokens ?? 1024;
     const limit = options.requestsPerSecond ?? 1;

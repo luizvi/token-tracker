@@ -29,9 +29,15 @@ echo "✓ pnpm $(pnpm --version)"
 if [ ! -f "$ROOT/.env" ]; then
   echo ""
   echo "Configurando .env..."
-  read -r -p "ANTHROPIC_API_KEY (opcional, Enter para pular): " ANTHROPIC_API_KEY
+  echo ""
+  echo "Auth Anthropic — preencha apenas UMA das duas opções:"
+  echo "  1) ANTHROPIC_API_KEY: chave API normal (sk-ant-...)"
+  echo "  2) CLAUDE_CODE_OAUTH_TOKEN: para usar seu plano Max/Pro (rode 'claude setup-token' em outro terminal e cole o token)"
+  read -r -p "ANTHROPIC_API_KEY (Enter para pular): " ANTHROPIC_API_KEY
+  read -r -p "CLAUDE_CODE_OAUTH_TOKEN (Enter para pular): " CLAUDE_CODE_OAUTH_TOKEN
   cat > "$ROOT/.env" <<EOF
 ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
 PORT=4833
 HOSTNAME=127.0.0.1
 NODE_ENV=production

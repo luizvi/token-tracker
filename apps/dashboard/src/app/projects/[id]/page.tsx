@@ -8,6 +8,7 @@ import { formatMoney, formatTokens, formatRelativeTime, formatDuration } from "@
 import { parseCurrency } from "@/lib/filters";
 import { notFound } from "next/navigation";
 import { ProjectClientLink } from "@/components/project-client-link";
+import { ProjectVisibilityToggle } from "@/components/project-visibility-toggle";
 
 export default async function ProjectDetail({
   params,
@@ -58,7 +59,10 @@ export default async function ProjectDetail({
           </div>
           <p className="text-text-muted text-xs font-mono mt-1">{project.cwdPath}</p>
         </div>
-        <ProjectClientLink projectId={project.id} currentClientId={project.clientId} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <ProjectVisibilityToggle projectId={project.id} active={project.active} />
+          <ProjectClientLink projectId={project.id} currentClientId={project.clientId} />
+        </div>
       </div>
 
       <div className="card p-4 grid grid-cols-2 md:grid-cols-4 gap-4">

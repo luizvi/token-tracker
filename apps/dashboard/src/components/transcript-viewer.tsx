@@ -8,6 +8,7 @@ export interface TranscriptMessageView {
   text: string;
   model?: string | undefined;
   tokens?: { input: number; output: number; cacheRead: number; cacheCreation: number } | undefined;
+  toolUses?: Array<{ name: string; input: unknown }> | undefined;
 }
 
 function truncate(s: string, n: number): string {
@@ -44,7 +45,14 @@ export function TranscriptViewer({ messages }: { messages: TranscriptMessageView
         const isExpanded = expanded.has(m.uuid);
         const isUser = m.role === "user";
         const isSystem = m.role === "system";
-        const preview = m.text.split("\n").slice(0, 2).join(" ").trim();
+        const hasText = m.text.trim().length > 0;
+        const toolUses = m.toolUses ?? [];
+        const toolSummary = toolUses.length > 0
+          ? `🔧 ${toolUses.map((t) => t.name).join(", ")}`
+          : "";
+        const preview = hasText
+          ? m.text.split("\n").slice(0, 2).join(" ").trim()
+          : toolSummary;
         return (
           <div
             key={m.uuid}
@@ -72,8 +80,24 @@ export function TranscriptViewer({ messages }: { messages: TranscriptMessageView
               </div>
               <div className="flex-1 min-w-0 text-sm">
                 <p className={`whitespace-pre-wrap break-words ${isExpanded ? "" : "font-mono"}`}>
-                  {isExpanded ? m.text : truncate(preview, 200)}
+                  {isExpanded
+                    ? (hasText ? m.text : toolSummary || "(sem conteúdo textual)")
+                    : truncate(preview, 200)}
                 </p>
+                {isExpanded && toolUses.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {toolUses.map((t, i) => (
+                      <div key={i} className="text-[11px] font-mono bg-bg-tertiary/40 rounded px-2 py-1">
+                        <span className="text-accent">🔧 {t.name}</span>
+                        {t.input !== undefined && (
+                          <pre className="mt-1 text-text-muted whitespace-pre-wrap break-words text-[10px]">
+                            {JSON.stringify(t.input, null, 2).slice(0, 600)}
+                          </pre>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="flex items-center gap-3 mt-1.5 text-[10px] text-text-muted font-mono">
                   <span>{formatTime(m.timestampMs)}</span>
                   {m.model && <span>{m.model}</span>}

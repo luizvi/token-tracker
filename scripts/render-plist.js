@@ -14,6 +14,7 @@ const replacements = {
   TRACKER_ROOT: process.env.TRACKER_ROOT ?? resolve("."),
   NODE_BIN: process.env.NODE_BIN ?? process.execPath,
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? "",
+  CLAUDE_CODE_OAUTH_TOKEN: process.env.CLAUDE_CODE_OAUTH_TOKEN ?? "",
 };
 
 let out = template;

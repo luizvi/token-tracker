@@ -36,7 +36,44 @@ export async function POST(req: Request) {
   });
 
   const lastEnded = Math.max(...sorted.map((t) => t.endedAt ?? t.startedAt));
-  updateTask(db, head.id, { ...totals, endedAt: lastEnded, status: "closed" });
+
+  // Pega o `lastMessageUuid` da task mais recente que tiver um — sem isso, o
+  // transcript do detalhe lê apenas até o último UUID da PRIMEIRA task e parece sumir.
+  const lastWithUuid = [...sorted].reverse().find((t) => t.lastMessageUuid !== null);
+  const newLastMessageUuid = lastWithUuid?.lastMessageUuid ?? head.lastMessageUuid;
+
+  // Junta modelos usados (deduplica).
+  const allModels = new Set<string>();
+  for (const t of sorted) {
+    if (t.modelsUsed) {
+      try { (JSON.parse(t.modelsUsed) as string[]).forEach((m) => allModels.add(m)); }
+      catch { /* ignore */ }
+    }
+  }
+  const modelsUsed = allModels.size > 0 ? JSON.stringify([...allModels]) : head.modelsUsed;
+
+  // Concatena descrições/reasonings se houver, pra não perder contexto humano.
+  const descParts = sorted.map((t) => t.description).filter((d): d is string => !!d);
+  const description = descParts.length > 0 ? descParts.join("\n---\n") : head.description;
+
+  // Preserva ranges originais por sessão para o detail page reconstruir o transcript completo.
+  const mergedSegments = JSON.stringify(
+    sorted.map((t) => ({
+      sessionId: t.sessionId,
+      firstMessageUuid: t.firstMessageUuid,
+      lastMessageUuid: t.lastMessageUuid,
+    })),
+  );
+
+  updateTask(db, head.id, {
+    ...totals,
+    endedAt: lastEnded,
+    lastMessageUuid: newLastMessageUuid,
+    modelsUsed,
+    description,
+    mergedSegments,
+    status: "closed",
+  });
 
   for (const o of others) {
     db.delete(schema.tasks).where(eq(schema.tasks.id, o.id)).run();

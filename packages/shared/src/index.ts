@@ -8,6 +8,8 @@ export {
   DEFAULT_SETTINGS,
   SETTINGS_SCHEMAS,
   parseSettingValue,
+  ANTHROPIC_PLAN_COSTS,
+  planMonthlyCostUsd,
   type Settings,
   type SettingKey,
 } from "./settings-schema.js";
@@ -23,3 +25,8 @@ export type {
   TranscriptFileInfo,
   TranscriptDelta,
 } from "./transcript-source.js";
+export {
+  getClaudeOAuthToken,
+  refreshClaudeOAuthToken,
+  clearClaudeCredentialsCache,
+} from "./claude-credentials.js";

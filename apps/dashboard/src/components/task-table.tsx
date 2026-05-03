@@ -48,20 +48,27 @@ export function TaskTable({
   const params = useSearchParams();
   const projectFilter = params.get("project");
   const clientFilter = params.get("client");
+  const periodFilter = params.get("period") ?? "month";
   const showSystem = params.get("system") === "1";
+  const showShort = params.get("short") === "1";
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const [merging, setMerging] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      const qs = new URLSearchParams({ limit: "500", period: periodFilter });
+      if (projectFilter) qs.set("project", projectFilter);
+      if (clientFilter) qs.set("client", clientFilter);
+      if (showShort) qs.set("short", "1");
       const [tasksRes, projectsRes, clientsRes] = await Promise.all([
-        fetch("/api/tasks?limit=500"),
+        fetch(`/api/tasks?${qs.toString()}`),
         fetch("/api/projects"),
         fetch("/api/clients"),
       ]);
@@ -80,28 +87,53 @@ export function TaskTable({
       cancelled = true;
       clearInterval(t);
     };
-  }, []);
+  }, [periodFilter, projectFilter, clientFilter, showShort]);
 
   const projectMap = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
 
   const filtered = useMemo(() => {
     let out = tasks;
-    if (projectFilter) out = out.filter((t) => t.projectId === projectFilter);
-    if (clientFilter) out = out.filter((t) => t.clientId === clientFilter);
     if (!showSystem) out = out.filter((t) => t.category !== "system");
     return out;
-  }, [tasks, projectFilter, clientFilter, showSystem]);
+  }, [tasks, showSystem]);
 
   const systemHidden = !showSystem ? tasks.filter((t) => t.category === "system").length : 0;
 
-  function toggle(id: string) {
+  function toggle(id: string, shiftKey = false) {
     setSelected((prev) => {
       const next = new Set(prev);
+      if (shiftKey && lastSelectedId && lastSelectedId !== id) {
+        const ids = filtered.map((t) => t.id);
+        const a = ids.indexOf(lastSelectedId);
+        const b = ids.indexOf(id);
+        if (a !== -1 && b !== -1) {
+          const [start, end] = a < b ? [a, b] : [b, a];
+          // Se o item-âncora estava selecionado, marca o range; senão, desmarca o range.
+          const turnOn = next.has(lastSelectedId);
+          for (let i = start; i <= end; i++) {
+            const tid = ids[i]!;
+            if (turnOn) next.add(tid);
+            else next.delete(tid);
+          }
+          return next;
+        }
+      }
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+    setLastSelectedId(id);
+  }
+
+  const allSelected = filtered.length > 0 && filtered.every((t) => selected.has(t.id));
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((t) => t.id)));
+    }
+    setLastSelectedId(null);
   }
 
   async function mergeSelected() {
@@ -117,7 +149,11 @@ export function TaskTable({
     if (res.ok) {
       setSelected(new Set());
       router.refresh();
-      const r = await fetch("/api/tasks?limit=500");
+      const qs = new URLSearchParams({ limit: "500", period: periodFilter });
+      if (projectFilter) qs.set("project", projectFilter);
+      if (clientFilter) qs.set("client", clientFilter);
+      if (showShort) qs.set("short", "1");
+      const r = await fetch(`/api/tasks?${qs.toString()}`);
       const d = await r.json();
       setTasks(d.tasks ?? []);
     } else {
@@ -138,29 +174,55 @@ export function TaskTable({
     else next.set("system", "1");
     router.push(`/tasks?${next.toString()}`);
   }
+  function toggleShortVisibility() {
+    const next = new URLSearchParams(params.toString());
+    if (showShort) next.delete("short");
+    else next.set("short", "1");
+    router.push(`/tasks?${next.toString()}`);
+  }
 
   if (loading) return <p className="text-text-muted">Carregando...</p>;
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={projectFilter ?? ""}
+          onChange={(e) => {
+            const next = new URLSearchParams(params.toString());
+            if (e.target.value) next.set("project", e.target.value);
+            else next.delete("project");
+            router.push(`/tasks?${next.toString()}`);
+          }}
+          className="bg-bg-card border border-border rounded px-2 py-1 text-sm focus:border-hover focus:outline-none"
+        >
+          <option value="">todos os projetos</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+        <select
+          value={clientFilter ?? ""}
+          onChange={(e) => {
+            const next = new URLSearchParams(params.toString());
+            if (e.target.value) next.set("client", e.target.value);
+            else next.delete("client");
+            router.push(`/tasks?${next.toString()}`);
+          }}
+          className="bg-bg-card border border-border rounded px-2 py-1 text-sm focus:border-hover focus:outline-none"
+        >
+          <option value="">todos os clientes</option>
+          {clients.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
         {(projectFilter || clientFilter) && (
           <button
             onClick={() => router.push("/tasks")}
             className="text-xs text-text-muted hover:text-accent border border-border px-2 py-1 rounded"
           >
-            ✕ limpar filtros
+            ✕ limpar
           </button>
-        )}
-        {projectFilter && projectMap.get(projectFilter) && (
-          <span className="chip bg-accent/15 text-accent border border-accent/30">
-            projeto: {projectMap.get(projectFilter)!.name}
-          </span>
-        )}
-        {clientFilter && clientMap.get(clientFilter) && (
-          <span className="chip bg-accent/15 text-accent border border-accent/30">
-            cliente: {clientMap.get(clientFilter)!.name}
-          </span>
         )}
         <button
           onClick={toggleSystemVisibility}
@@ -176,6 +238,17 @@ export function TaskTable({
             <span className="ml-1 text-text-muted">({systemHidden} ocultas)</span>
           )}
         </button>
+        <button
+          onClick={toggleShortVisibility}
+          className={`text-xs px-2 py-1 rounded border transition-colors ${
+            showShort
+              ? "border-accent text-accent bg-accent/10"
+              : "border-border text-text-muted hover:text-text-primary"
+          }`}
+          title="Mostrar tasks com duração curta (provavelmente ruído do detector)"
+        >
+          {showShort ? "✓" : ""} tasks curtas
+        </button>
         <span className="ml-auto text-xs text-text-muted font-mono">
           {filtered.length} task{filtered.length !== 1 ? "s" : ""}
         </span>
@@ -190,13 +263,18 @@ export function TaskTable({
         )}
         {selected.size > 0 && (
           <button
-            onClick={() => setSelected(new Set())}
+            onClick={() => { setSelected(new Set()); setLastSelectedId(null); }}
             className="text-xs text-text-muted hover:text-text-primary px-2 py-1"
           >
             limpar seleção
           </button>
         )}
       </div>
+      {selected.size === 0 && filtered.length > 1 && (
+        <p className="text-[11px] text-text-muted">
+          Dica: clique numa caixa, depois <kbd className="px-1 border border-border rounded">Shift</kbd>+clique em outra para selecionar a faixa entre elas.
+        </p>
+      )}
 
       {filtered.length === 0 ? (
         <p className="text-text-muted">Nenhuma task encontrada</p>
@@ -205,7 +283,15 @@ export function TaskTable({
           <table className="w-full text-sm font-mono">
             <thead className="text-text-muted text-xs uppercase border-b border-border">
               <tr>
-                <th className="text-left py-2 px-2 w-8"></th>
+                <th className="text-left py-2 px-2 w-8">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleSelectAll}
+                    className="accent-accent cursor-pointer"
+                    title={allSelected ? "Desmarcar todas" : "Selecionar todas as visíveis"}
+                  />
+                </th>
                 <th className="text-left py-2 px-2 w-8"></th>
                 <th className="text-left py-2 px-2">Title</th>
                 <th className="text-left py-2 px-2">Project</th>
@@ -231,8 +317,10 @@ export function TaskTable({
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => toggle(t.id)}
+                        onChange={() => { /* handled by onClick */ }}
+                        onClick={(e) => toggle(t.id, e.shiftKey)}
                         className="accent-accent cursor-pointer"
+                        title="Shift+clique para selecionar uma faixa"
                       />
                     </td>
                     <td className="py-2 px-2">

@@ -1,11 +1,17 @@
-const REFINE_SYSTEM = `Você analisa transcripts de sessões do Claude Code e produz um título conciso (max 60 chars) e uma categoria.
+export const DEFAULT_REFINE_SYSTEM = `Você analisa transcripts de sessões do Claude Code e produz um título conciso e descritivo (máximo 60 caracteres) e uma categoria.
 
-Categorias possíveis: feature, hotfix, refactor, research, infra, docs, debug, other.
+REGRAS DE LÍNGUA — críticas:
+- O título DEVE estar em português brasileiro.
+- Use verbos no infinitivo ou substantivos diretos. Exemplo: "ajustar dashboard", "fix bug login", "refatorar pricing", "investigar lentidão API".
+- Se o transcript estiver em inglês, traduza para PT-BR mantendo termos técnicos (Bug, Refactor, API, etc.) quando fizer sentido.
+- NUNCA devolva título em inglês puro.
+
+Categorias permitidas: feature, hotfix, refactor, research, infra, docs, debug, other.
 
 Responda APENAS com JSON no formato: {"title": "...", "category": "..."}
-Não inclua explicações, comentários, ou markdown.`;
+Sem explicações, sem comentários, sem markdown, sem prefixos.`;
 
-const ESTIMATE_SYSTEM = `Você é um sênior em desenvolvimento de software. Estime quantas horas um humano experiente levaria para completar a tarefa descrita SEM usar IA.
+export const DEFAULT_ESTIMATE_SYSTEM = `Você é um desenvolvedor sênior. Estime quantas horas um humano experiente levaria para completar a tarefa descrita SEM usar IA.
 
 Considere:
 - complexidade técnica
@@ -13,7 +19,24 @@ Considere:
 - risco de edge cases
 - tempo de testes
 
-Responda APENAS com JSON: {"hours": <número>, "reasoning": "<1-2 frases>"}`;
+REGRAS DE LÍNGUA — críticas:
+- O campo "reasoning" DEVE estar em português brasileiro, com 1-2 frases curtas.
+- Termos técnicos (API, refactor, hotfix, etc.) podem ficar em inglês quando naturais.
+
+Responda APENAS com JSON: {"hours": <número>, "reasoning": "<1-2 frases em PT-BR>"}`;
+
+// Prompts efetivos: mutáveis em runtime via setRefinerPrompts (ver settings).
+let REFINE_SYSTEM = DEFAULT_REFINE_SYSTEM;
+let ESTIMATE_SYSTEM = DEFAULT_ESTIMATE_SYSTEM;
+
+export function setRefinerPrompts(opts: { refine?: string | null; estimate?: string | null }): void {
+  REFINE_SYSTEM = opts.refine?.trim() ? opts.refine : DEFAULT_REFINE_SYSTEM;
+  ESTIMATE_SYSTEM = opts.estimate?.trim() ? opts.estimate : DEFAULT_ESTIMATE_SYSTEM;
+}
+
+export function getRefinerPrompts(): { refine: string; estimate: string } {
+  return { refine: REFINE_SYSTEM, estimate: ESTIMATE_SYSTEM };
+}
 
 export interface RefineInput {
   projectName: string;

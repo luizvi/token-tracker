@@ -11,7 +11,19 @@ export const SYSTEM_TASK_PATTERNS: RegExp[] = [
   /^you are (a |an )?(specialized )?claude[- ]mem/i,
   /^you are (a |an )?agent\b/i,
   /^you are (a |an )?(specialized )?(tool|agent|hook|assistant) (named|called)/i,
-  /^<system>/i,
+  // Tags de hooks/skills/comandos do Claude Code — capturadas antes mesmo de prefixos com espaços/quebras.
+  /^\s*<system[-_ ]/i,
+  /^\s*<\/?system>/i,
+  /^\s*<command[-_]/i,
+  /^\s*<user[-_]prompt/i,
+  /^\s*<extremely[-_ ]?important/i,
+  /^\s*<subagent[-_ ]?stop/i,
+  /^\s*<hook[-_ ]?/i,
+  /^\s*<session[-_ ]?start/i,
+  /^\s*<plugin[-_ ]?/i,
+  /^\s*<tool[-_ ]?use/i,
+  /^\s*<env>/i,
+  /^\s*<rules>/i,
   /^run this hook/i,
   /^extract (memories|insights|observations) from/i,
   /^summari[sz]e (this|the) (session|conversation|transcript)/i,
@@ -23,6 +35,9 @@ export const SYSTEM_TASK_PATTERNS: RegExp[] = [
   /\b(automatic|auto-generated|machine-generated) (analysis|summary|extraction)\b/i,
   /^role:\s*system\b/i,
   /^output schema:/i,
+  // Caught-all pra qualquer task cuja primeira mensagem comeca com tag XML/HTML-like —
+  // praticamente sempre indica injeção do harness do CC, não input humano.
+  /^\s*<[a-z][a-z0-9_-]*[> ]/i,
 ];
 
 export function isSystemTaskTitle(title: string): boolean {

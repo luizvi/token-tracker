@@ -14,3 +14,4 @@ export * from "./queries/settings.js";
 export * from "./queries/pricing.js";
 export * from "./queries/currency.js";
 export * from "./queries/diagnostics.js";
+export * from "./queries/revenue.js";

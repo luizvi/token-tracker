@@ -6,9 +6,20 @@ import { clients } from "../schema.js";
 export type ClientRow = typeof clients.$inferSelect;
 export type NewClientInput = {
   name: string;
+  kind?: "service" | "personal" | "product";
   hourLimitValue?: number | null;
   hourLimitPeriod?: "week" | "month" | null;
   billableFactor?: number;
+  contractValueBrl?: number | null;
+  contractValueUsd?: number | null;
+  contractPeriod?: "week" | "month" | "year" | null;
+  hourlyRateBrl?: number | null;
+  hourlyRateUsd?: number | null;
+  monthlyAverageHours?: number | null;
+  monthlyAverageCostUsd?: number | null;
+  contractStartAt?: number | null;
+  contractRenewalAt?: number | null;
+  renewalNoticeDays?: number | null;
   color?: string | null;
   notes?: string | null;
 };
@@ -18,9 +29,20 @@ export function createClientRow(db: DbClient, input: NewClientInput): ClientRow 
   const row = {
     id: newId(),
     name: input.name,
+    kind: input.kind ?? "service" as const,
     hourLimitValue: input.hourLimitValue ?? null,
     hourLimitPeriod: input.hourLimitPeriod ?? null,
     billableFactor: input.billableFactor ?? 0.4,
+    contractValueBrl: input.contractValueBrl ?? null,
+    contractValueUsd: input.contractValueUsd ?? null,
+    contractPeriod: input.contractPeriod ?? null,
+    hourlyRateBrl: input.hourlyRateBrl ?? null,
+    hourlyRateUsd: input.hourlyRateUsd ?? null,
+    monthlyAverageHours: input.monthlyAverageHours ?? null,
+    monthlyAverageCostUsd: input.monthlyAverageCostUsd ?? null,
+    contractStartAt: input.contractStartAt ?? null,
+    contractRenewalAt: input.contractRenewalAt ?? null,
+    renewalNoticeDays: input.renewalNoticeDays ?? null,
     color: input.color ?? null,
     notes: input.notes ?? null,
     createdAt: now,

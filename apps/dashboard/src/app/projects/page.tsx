@@ -5,25 +5,31 @@ import { listProjects, listTasks, listClients } from "@tracker/db";
 import { getDb } from "@/lib/db";
 import { getUsdBrlRate } from "@/lib/currency-rate";
 import { formatMoney, formatTokens } from "@/lib/format";
-import { parseCurrency } from "@/lib/filters";
+import { parseCurrency, parsePeriod, periodCutoffMs } from "@/lib/filters";
+import { ProjectMergeBar } from "@/components/project-merge-bar";
 
 export default async function ProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ currency?: string }>;
+  searchParams: Promise<{ currency?: string; period?: string; hidden?: string }>;
 }) {
   const sp = await searchParams;
   const currency = parseCurrency(sp.currency);
+  const period = parsePeriod(sp.period);
+  const cutoff = periodCutoffMs(period);
   const rate = getUsdBrlRate();
 
+  const showHidden = sp.hidden === "1";
   const db = getDb();
-  const projects = listProjects(db);
+  const projectsAll = listProjects(db);
+  const projects = showHidden ? projectsAll : projectsAll.filter((p) => p.active);
+  const hiddenCount = projectsAll.filter((p) => !p.active).length;
   const clients = listClients(db);
   const clientMap = new Map(clients.map((c) => [c.id, c]));
 
   const byProject = projects
     .map((p) => {
-      const ts = listTasks(db, { projectId: p.id });
+      const ts = listTasks(db, { projectId: p.id }).filter((t) => t.startedAt >= cutoff);
       const client = p.clientId ? clientMap.get(p.clientId) : null;
       return {
         ...p,
@@ -38,12 +44,26 @@ export default async function ProjectsPage({
 
   return (
     <div className="animate-in fade-in duration-300">
-      <div className="flex items-baseline justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-xl font-semibold">Projetos</h2>
-        <p className="text-xs text-text-muted">
-          {byProject.length} projeto{byProject.length !== 1 ? "s" : ""}
-        </p>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/projects?${showHidden ? "" : "hidden=1"}`}
+            className={`text-xs px-2 py-1 rounded border transition-colors ${
+              showHidden ? "border-accent text-accent bg-accent/10" : "border-border text-text-muted hover:text-text-primary"
+            }`}
+          >
+            {showHidden ? "✓" : ""} ocultos
+            {hiddenCount > 0 && !showHidden && <span className="ml-1">({hiddenCount})</span>}
+          </Link>
+          <p className="text-xs text-text-muted">
+            {byProject.length} projeto{byProject.length !== 1 ? "s" : ""}
+          </p>
+        </div>
       </div>
+      <ProjectMergeBar
+        projects={byProject.map((p) => ({ id: p.id, name: p.name, slug: p.slug, cwdPath: p.cwdPath }))}
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {byProject.map((p) => (
           <Link

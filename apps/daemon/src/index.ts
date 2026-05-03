@@ -1,9 +1,11 @@
 import { createClient, runMigrations, seedDatabase, getSetting } from "@tracker/db";
+import { getClaudeOAuthToken } from "@tracker/shared";
 import { ClaudeCodeJsonlSource } from "./ingestor/claude-code-source.js";
 import { loadConfig } from "./config.js";
 import { createLogger } from "./logger.js";
 import { withDaemonRun } from "./runs.js";
 import { runTick, runRefineAndEstimateBatch } from "./scheduler.js";
+import { setRefinerPrompts } from "./refiner/prompts.js";
 import { updateCurrencyToday } from "./currency/updater.js";
 import { formatDateBrt } from "./time.js";
 import { HaikuClient } from "./refiner/haiku-client.js";
@@ -65,12 +67,20 @@ async function main() {
       } catch (err) { log.warn("backup failed", err); }
     }
 
-    if (cfg.anthropicApiKey) {
+    // Resolve credenciais a cada tick — assim pegamos rotações que o Claude Code
+    // faz no Keychain sem precisar reiniciar o daemon nem editar .env.
+    const oauthToken = cfg.anthropicAuthToken ?? (await getClaudeOAuthToken());
+    if (cfg.anthropicApiKey || oauthToken) {
+      setRefinerPrompts({
+        refine: getSetting<string>(db, "haiku.refinePrompt") ?? null,
+        estimate: getSetting<string>(db, "haiku.estimatePrompt") ?? null,
+      });
       try {
         await withDaemonRun(db, "haiku-batch", async () => {
           const haikuClient = new HaikuClient({
-            apiKey: cfg.anthropicApiKey!,
-            model: "claude-haiku-4-5-20251001",
+            ...(cfg.anthropicApiKey ? { apiKey: cfg.anthropicApiKey } : {}),
+            ...(oauthToken ? { authToken: oauthToken } : {}),
+            model: getSetting<string>(db, "haiku.model") ?? "claude-haiku-4-5-20251001",
             requestsPerSecond: getSetting<number>(db, "haiku.requestsPerSecond") ?? 1,
           });
           await runRefineAndEstimateBatch(db, haikuClient, 5);

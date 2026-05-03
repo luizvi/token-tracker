@@ -10,9 +10,29 @@ const bool = (name: string, def = false) =>
 export const clients = sqliteTable("clients", {
   id: text("id").primaryKey(),
   name: text("name").notNull().unique(),
+  // Tipo do cliente:
+  //  - "service":  cliente real com contrato/cobrança (default)
+  //  - "personal": projeto pessoal — sem lucro esperado, só registra custos/horas
+  //  - "product":  produto próprio — receita variável via revenue_entries (sem contrato fixo)
+  kind: text("kind", { enum: ["service", "personal", "product"] }).notNull().default("service"),
   hourLimitValue: real("hour_limit_value"),
   hourLimitPeriod: text("hour_limit_period", { enum: ["week", "month"] }),
   billableFactor: real("billable_factor").notNull().default(0.4),
+  contractValueBrl: real("contract_value_brl"),
+  contractValueUsd: real("contract_value_usd"),
+  contractPeriod: text("contract_period", { enum: ["week", "month", "year"] }),
+  // Pra clientes pagos por hora (freelas).
+  hourlyRateBrl: real("hourly_rate_brl"),
+  hourlyRateUsd: real("hourly_rate_usd"),
+  // Horas/mês esperadas — usado pra "previsto vs realizado" e calcular receita estimada.
+  monthlyAverageHours: real("monthly_average_hours"),
+  // Custo de IA esperado por mês (USD) — pra alertar quando Claude está saindo caro vs orçamento.
+  monthlyAverageCostUsd: real("monthly_average_cost_usd"),
+  // Datas do contrato (epoch ms). contractRenewalAt = vencimento/renegociação.
+  contractStartAt: optTs("contract_start_at"),
+  contractRenewalAt: optTs("contract_renewal_at"),
+  // Dias de antecedência pra alertar na dashboard. Default 30 quando renewal está setado.
+  renewalNoticeDays: integer("renewal_notice_days"),
   color: text("color"),
   notes: text("notes"),
   createdAt: ts("created_at"),
@@ -79,6 +99,12 @@ export const tasks = sqliteTable("tasks", {
   costUsd: real("cost_usd").notNull().default(0),
   isBackfilled: bool("is_backfilled"),
   refinedByHaiku: bool("refined_by_haiku"),
+  // Quando uma task é merge de várias, guarda os segmentos originais pra reconstruir o transcript.
+  // JSON: [{ sessionId, firstMessageUuid, lastMessageUuid }, ...] em ordem cronológica.
+  mergedSegments: text("merged_segments"),
+  // Links externos: PR no GitHub, ticket no Jira/Linear, etc.
+  // JSON: [{ kind: "github"|"jira"|"linear"|"other", label?: string, url: string }]
+  links: text("links"),
   confidence: real("confidence").notNull().default(1),
   createdAt: ts("created_at"),
   updatedAt: ts("updated_at"),
@@ -103,6 +129,23 @@ export const taskTags = sqliteTable("task_tags", {
 }, (t) => ({
   pk: primaryKey({ columns: [t.taskId, t.tagId] }),
   idxTag: index("idx_task_tags_tag").on(t.tagId),
+}));
+
+// Linhas de receita registradas manualmente para clientes do tipo "product"
+// (e qualquer outro caso onde o usuário queira lançar receita real ou estimada).
+export const revenueEntries = sqliteTable("revenue_entries", {
+  id: text("id").primaryKey(),
+  clientId: text("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  // "estimated" = previsão; "actual" = realizado.
+  kind: text("kind", { enum: ["estimated", "actual"] }).notNull(),
+  amountUsd: real("amount_usd"),
+  amountBrl: real("amount_brl"),
+  occurredAt: ts("occurred_at"),
+  description: text("description"),
+  createdAt: ts("created_at"),
+  updatedAt: ts("updated_at"),
+}, (t) => ({
+  idxClientDate: index("idx_revenue_client_date").on(t.clientId, t.occurredAt),
 }));
 
 export const manualEvents = sqliteTable("manual_events", {
