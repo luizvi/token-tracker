@@ -1,0 +1,22 @@
+{
+  "name": "token-tracker",
+  "version": "0.1.0",
+  "description": "Local-first token, cost, and time analytics for Claude Code. Ingests JSONL transcripts, exposes a dashboard at :4833, and ships slash commands for manual task tracking that integrate with claude-mem.",
+  "author": {
+    "name": "Luiz Vinicius",
+    "url": "https://github.com/luizvi"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/luizvi/token-tracker",
+  "repository": "https://github.com/luizvi/token-tracker",
+  "keywords": [
+    "claude-code",
+    "tokens",
+    "cost-tracking",
+    "time-tracking",
+    "billable-hours",
+    "claude-mem",
+    "analytics",
+    "macos"
+  ]
+}

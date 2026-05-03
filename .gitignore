@@ -9,13 +9,13 @@ build/
 .turbo/
 *.tsbuildinfo
 
-# Runtime data
-data/tracker.db
-data/tracker.db-shm
-data/tracker.db-wal
-data/backups/
-data/logs/
-data/state/
+# Runtime data — entire data/ tree is created at install time
+data/*
+!data/.gitkeep
+
+# Rendered LaunchAgent plists (templates live in infra/launchd/)
+infra/launchd/*.plist
+!infra/launchd/*.template
 
 # Environment
 .env
