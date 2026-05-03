@@ -4,6 +4,20 @@
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./config": "./dist/config.js",
+    "./scheduler": "./dist/scheduler.js",
+    "./ingestor/claude-code-source": "./dist/ingestor/claude-code-source.js",
+    "./ingestor/ingestor": "./dist/ingestor/ingestor.js",
+    "./detector/detector": "./dist/detector/detector.js",
+    "./biller/biller": "./dist/biller/biller.js",
+    "./currency/updater": "./dist/currency/updater.js",
+    "./time": "./dist/time.js",
+    "./refiner/haiku-client": "./dist/refiner/haiku-client.js",
+    "./refiner/refiner": "./dist/refiner/refiner.js",
+    "./estimator/estimator": "./dist/estimator/estimator.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",

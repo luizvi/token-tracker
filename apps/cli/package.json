@@ -1,0 +1,33 @@
+{
+  "name": "@tracker/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "lv-tracker": "./dist/bin/lv-tracker.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/bin/lv-tracker.js",
+    "dev": "tsx bin/lv-tracker.ts",
+    "test": "vitest run",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@tracker/db": "workspace:*",
+    "@tracker/shared": "workspace:*",
+    "@tracker/daemon": "workspace:*",
+    "commander": "^12.1.0",
+    "kleur": "^4.1.5",
+    "prompts": "^2.4.2",
+    "undici": "^7.0.0"
+  },
+  "devDependencies": {
+    "@tracker/config": "workspace:*",
+    "@types/node": "^20.17.10",
+    "@types/prompts": "^2.4.9",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.8"
+  }
+}
