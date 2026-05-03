@@ -10,7 +10,8 @@ describe("HaikuClient.complete", () => {
       system: "system has AKIAIOSFODNN7EXAMPLE",
       user: "user has ANTHROPIC_API_KEY=sk-ant-api03-secret123secret123secret123secret123",
     });
-    const sentArgs = sendSpy.mock.calls[0]![0] as { system: string; user: string };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sentArgs = (sendSpy.mock.calls as unknown as Array<[{ system: string; user: string }]>)[0]![0];
     expect(sentArgs.system).toContain("[REDACTED:AWS_ACCESS_KEY]");
     expect(sentArgs.user).toContain("[REDACTED:");
   });

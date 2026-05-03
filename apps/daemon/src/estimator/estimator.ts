@@ -28,10 +28,9 @@ export async function estimateTaskHours(
   if (!task) return;
   if (task.humanHoursSource === "manual") return;
 
-  const result = await estimator.estimate({
-    title: task.title,
-    description: task.description ?? undefined,
-  });
+  const estimateInput: { title: string; description?: string } = { title: task.title };
+  if (task.description) estimateInput.description = task.description;
+  const result = await estimator.estimate(estimateInput);
   if (result.hours === null) return;
 
   updateTask(db, taskId, {

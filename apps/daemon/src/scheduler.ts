@@ -1,8 +1,11 @@
-import { type DbClient, getSetting } from "@tracker/db";
+import { type DbClient, getSetting, listTasks } from "@tracker/db";
 import type { TranscriptSource } from "@tracker/shared";
 import { ingestAllPending } from "./ingestor/ingestor.js";
 import { processMessages } from "./detector/detector.js";
 import { closeIdleTasks } from "./close-idle/close-idle.js";
+import { HaikuRefiner, listTasksEligibleForRefine, refineTask } from "./refiner/refiner.js";
+import { HaikuEstimator, estimateTaskHours } from "./estimator/estimator.js";
+import { HaikuClient } from "./refiner/haiku-client.js";
 
 export interface TickMetrics {
   filesScanned: number;
@@ -45,4 +48,37 @@ export async function runTick(db: DbClient, source: TranscriptSource): Promise<T
     tasksUpdated: 0,
     tasksClosedIdle: closedCount,
   };
+}
+
+export interface RefineEstimateMetrics {
+  refined: number;
+  estimated: number;
+}
+
+export async function runRefineAndEstimateBatch(
+  db: DbClient,
+  client: HaikuClient,
+  maxBatch = 10,
+): Promise<RefineEstimateMetrics> {
+  const refiner = new HaikuRefiner(client);
+  const estimator = new HaikuEstimator(client);
+
+  const refineThreshold = getSetting<number>(db, "haiku.autoRefineAboveTokens") ?? 5000;
+  const autoEstimate = getSetting<boolean>(db, "haiku.autoEstimateHours") ?? true;
+
+  const refineCandidates = listTasksEligibleForRefine(db, refineThreshold).slice(0, maxBatch);
+  let refined = 0;
+  for (const t of refineCandidates) {
+    try { await refineTask(db, t.id, refiner); refined++; } catch { /* swallow */ }
+  }
+
+  let estimated = 0;
+  if (autoEstimate) {
+    const candidates = listTasks(db, {}).filter((t) => t.humanHoursSource === "none").slice(0, maxBatch);
+    for (const t of candidates) {
+      try { await estimateTaskHours(db, t.id, estimator); estimated++; } catch { /* swallow */ }
+    }
+  }
+
+  return { refined, estimated };
 }

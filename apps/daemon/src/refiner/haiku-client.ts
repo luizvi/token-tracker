@@ -34,7 +34,7 @@ export class HaikuClient {
     const safe: CompleteRequest = {
       system: redact(req.system),
       user: redact(req.user),
-      maxTokens: req.maxTokens,
+      ...(req.maxTokens !== undefined ? { maxTokens: req.maxTokens } : {}),
     };
     return this.throttledSend(safe);
   }
