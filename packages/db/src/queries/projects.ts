@@ -48,3 +48,22 @@ export function upsertProjectByCwdPath(db: DbClient, input: NewProjectInput): Pr
   if (existing) return existing;
   return createProject(db, input);
 }
+
+export function getProjectById(db: DbClient, id: string): ProjectRow | null {
+  return db.select().from(projects).where(eq(projects.id, id)).all()[0] ?? null;
+}
+
+export function updateProject(
+  db: DbClient,
+  id: string,
+  patch: Partial<Omit<ProjectRow, "id" | "createdAt" | "updatedAt">>,
+): ProjectRow | null {
+  const current = getProjectById(db, id);
+  if (!current) return null;
+  db.update(projects).set({ ...patch, updatedAt: Date.now() }).where(eq(projects.id, id)).run();
+  return getProjectById(db, id);
+}
+
+export function deleteProject(db: DbClient, id: string): boolean {
+  return db.delete(projects).where(eq(projects.id, id)).run().changes > 0;
+}

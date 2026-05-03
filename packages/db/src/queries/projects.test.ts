@@ -4,6 +4,7 @@ import { runMigrations } from "../migrate.js";
 import { createClientRow } from "./clients.js";
 import {
   createProject, listProjects, getProjectBySlug, getProjectByCwdPath, upsertProjectByCwdPath,
+  getProjectById, updateProject, deleteProject,
 } from "./projects.js";
 
 let db: DbClient;
@@ -54,6 +55,38 @@ describe("projects queries", () => {
     createProject(db, { slug: "b", name: "Beta", cwdPath: "/b" });
     createProject(db, { slug: "a", name: "Alpha", cwdPath: "/a" });
     expect(listProjects(db).map((p) => p.name)).toEqual(["Alpha", "Beta"]);
+    close();
+  });
+
+  it("getProjectById retorna null quando não existe", () => {
+    expect(getProjectById(db, "nonexistent")).toBeNull();
+    close();
+  });
+
+  it("getProjectById retorna o projeto pelo id", () => {
+    const p = createProject(db, { slug: "myp", name: "My Project", cwdPath: "/myp" });
+    expect(getProjectById(db, p.id)?.id).toBe(p.id);
+    close();
+  });
+
+  it("updateProject altera campos passados, mantém o resto", () => {
+    const p = createProject(db, { slug: "upd", name: "Update Me", cwdPath: "/upd" });
+    const updated = updateProject(db, p.id, { name: "Updated Name" });
+    expect(updated?.name).toBe("Updated Name");
+    expect(updated?.slug).toBe("upd");
+    close();
+  });
+
+  it("updateProject retorna null quando projeto não existe", () => {
+    expect(updateProject(db, "nonexistent", { name: "X" })).toBeNull();
+    close();
+  });
+
+  it("deleteProject remove o projeto e retorna true; segunda chamada retorna false", () => {
+    const p = createProject(db, { slug: "del", name: "Delete Me", cwdPath: "/del" });
+    expect(deleteProject(db, p.id)).toBe(true);
+    expect(getProjectById(db, p.id)).toBeNull();
+    expect(deleteProject(db, p.id)).toBe(false);
     close();
   });
 });
