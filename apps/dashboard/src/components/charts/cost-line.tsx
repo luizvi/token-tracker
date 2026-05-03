@@ -11,12 +11,11 @@ import {
 export function CostLine({
   data,
   unit = "$",
-  formatter = (v: number) => `$${v.toFixed(2)}`,
 }: {
   data: Array<{ date: string; cost: number }>;
   unit?: string;
-  formatter?: (v: number) => string;
 }) {
+  const formatter = (v: number) => `${unit}${v.toFixed(v < 1 ? 4 : 2)}`;
   return (
     <ResponsiveContainer width="100%" height={250}>
       <LineChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>

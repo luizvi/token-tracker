@@ -77,11 +77,7 @@ export default async function OverviewPage({
           <h3 className="text-sm font-semibold text-text-secondary">Custo por dia</h3>
           <span className="text-xs text-text-muted font-mono">{currency}</span>
         </div>
-        <CostLine
-          data={costByDay}
-          unit={currency === "BRL" ? "R$" : "$"}
-          formatter={(v) => formatMoney(currency === "BRL" ? v / rate : v, currency, rate)}
-        />
+        <CostLine data={costByDay} unit={currency === "BRL" ? "R$" : "$"} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
