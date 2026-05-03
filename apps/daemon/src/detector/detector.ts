@@ -5,6 +5,7 @@ import {
 import type { TranscriptMessage } from "@tracker/shared";
 import { calculateTimeBlocks } from "@tracker/shared";
 import { decideBoundary } from "./boundary.js";
+import { isSystemTaskTitle } from "./classify-system.js";
 import { recomputeTaskCost } from "../pricing/pricer.js";
 
 interface DetectorSettings {
@@ -64,24 +65,34 @@ export async function processMessages(
       });
 
       if (decision.action === "start" || (currentTask === null && decision.action !== "pause")) {
+        const title = deriveTitleFromUser(msg.text);
         currentTask = createTask(db, {
           sessionId,
           projectId,
-          title: deriveTitleFromUser(msg.text),
+          title,
           startedAt: msg.timestampMs,
           firstMessageUuid: msg.uuid,
           confidence: decision.confidence,
         });
+        if (isSystemTaskTitle(title)) {
+          updateTask(db, currentTask.id, { category: "system" });
+          currentTask = { ...currentTask, category: "system" };
+        }
       } else if (decision.action === "close-and-start" && currentTask) {
         closeTask(db, currentTask.id, lastAssistantTs ?? msg.timestampMs, currentTask.lastMessageUuid);
+        const title = deriveTitleFromUser(msg.text);
         currentTask = createTask(db, {
           sessionId,
           projectId,
-          title: deriveTitleFromUser(msg.text),
+          title,
           startedAt: msg.timestampMs,
           firstMessageUuid: msg.uuid,
           confidence: decision.confidence,
         });
+        if (isSystemTaskTitle(title)) {
+          updateTask(db, currentTask.id, { category: "system" });
+          currentTask = { ...currentTask, category: "system" };
+        }
       } else if (decision.action === "pause" && currentTask) {
         if (currentTask.status === "open") pauseTask(db, currentTask.id);
         // Não cria nova; espera próxima msg fora da janela noturna
