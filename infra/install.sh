@@ -64,7 +64,7 @@ pnpm build
 # 6. Link CLI global
 echo ""
 echo "🔗 Linking lv-tracker globally..."
-pnpm --filter @tracker/cli link --global || true
+(cd "$ROOT/apps/cli" && pnpm link --global) || true
 
 # 7. Render plists
 echo ""

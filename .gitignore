@@ -41,3 +41,6 @@ pnpm-debug.log*
 *.tgz
 .cache/
 coverage/
+
+# Next.js generated
+apps/dashboard/next-env.d.ts
