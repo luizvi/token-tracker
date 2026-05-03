@@ -40,6 +40,22 @@ function main() {
     cpSync(src, dest, { recursive: true, dereference: true });
     console.log(`✓ Copied ${pkg} → standalone`);
   }
+
+  // Next standalone NÃO copia .next/static nem public/ automaticamente.
+  // Sem isso, o servidor retorna 404 para todos os assets (CSS, JS chunks, fonts).
+  const staticSrc = join(dashRoot, ".next", "static");
+  const staticDest = join(standaloneDashboardRoot, ".next", "static");
+  if (existsSync(staticSrc)) {
+    cpSync(staticSrc, staticDest, { recursive: true, dereference: true });
+    console.log("✓ Copied .next/static → standalone");
+  }
+
+  const publicSrc = join(dashRoot, "public");
+  const publicDest = join(standaloneDashboardRoot, "public");
+  if (existsSync(publicSrc)) {
+    cpSync(publicSrc, publicDest, { recursive: true, dereference: true });
+    console.log("✓ Copied public/ → standalone");
+  }
 }
 
 main();
