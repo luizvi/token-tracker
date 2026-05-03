@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TODO: baixar Monaspace Radon do site oficial (https://monaspace.githubnext.com/) e colocar em public/fonts/ */
+@font-face {
+  font-family: "Monaspace Radon";
+  src: url("/fonts/monaspace-radon-var.woff2") format("woff2-variations");
+  font-weight: 200 900;
+  font-display: swap;
+}
+
+:root,
+[data-theme="light"] {
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #efebe4;
+  --color-bg-tertiary: #f0f0f0;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #f6f8fa;
+  --color-border-primary: #d0d7de;
+  --color-border-hover: #1fe879;
+  --color-text-primary: #2b2520;
+  --color-text-secondary: #5a5248;
+  --color-text-muted: #8f8a7e;
+}
+
+[data-theme="dark"] {
+  --color-bg-primary: #1a1916;
+  --color-bg-secondary: #252320;
+  --color-bg-tertiary: #1f1d1a;
+  --color-bg-card: #252320;
+  --color-bg-card-hover: #2d2a26;
+  --color-border-primary: #3a3834;
+  --color-border-hover: #1fe879;
+  --color-text-primary: #dcd6cc;
+  --color-text-secondary: #b8b0a4;
+  --color-text-muted: #7a7266;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg-primary: #1a1916;
+    --color-bg-secondary: #252320;
+    --color-bg-tertiary: #1f1d1a;
+    --color-bg-card: #252320;
+    --color-bg-card-hover: #2d2a26;
+    --color-border-primary: #3a3834;
+    --color-border-hover: #1fe879;
+    --color-text-primary: #dcd6cc;
+    --color-text-secondary: #b8b0a4;
+    --color-text-muted: #7a7266;
+  }
+}
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.font-mono, .num, .timestamp { font-family: "Monaspace Radon", "Monaco", monospace; }
+
+.card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 6px;
+}
+
+.btn-primary {
+  background: #1fe879;
+  color: #0a3d20;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 8px 14px;
+}
+.btn-primary:hover { background: #1bd16d; }
+
+.chip { display: inline-flex; padding: 2px 8px; border-radius: 999px; font-size: 11px; }
+.chip-backfilled { opacity: 0.6; }
+
+.text-danger { color: #d1242f; }
+.text-warning { color: #d4a72c; }
+.text-accent { color: #1fe879; }
