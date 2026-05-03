@@ -7,6 +7,8 @@ import { runTick, runRefineAndEstimateBatch } from "./scheduler.js";
 import { updateCurrencyToday } from "./currency/updater.js";
 import { formatDateBrt } from "./time.js";
 import { HaikuClient } from "./refiner/haiku-client.js";
+import { backupSqlite } from "./backup/backup.js";
+import { join } from "node:path";
 
 const log = createLogger("[daemon]");
 
@@ -21,6 +23,7 @@ async function main() {
   const source = new ClaudeCodeJsonlSource(cfg.claudeProjectsDir);
 
   let lastCurrencyDate = "";
+  let lastBackupDate = "";
 
   async function tick() {
     const paused = getSetting<boolean>(db, "daemon.paused");
@@ -50,6 +53,16 @@ async function main() {
       } catch (err) {
         log.warn("currency update failed", err);
       }
+    }
+
+    const hour = new Date().getHours();
+    if (hour >= 3 && hour < 4 && lastBackupDate !== today) {
+      try {
+        await withDaemonRun(db, "backup", async () => {
+          await backupSqlite(cfg.dbPath, join(cfg.trackerRoot, "data", "backups"));
+        });
+        lastBackupDate = today;
+      } catch (err) { log.warn("backup failed", err); }
     }
 
     if (cfg.anthropicApiKey) {
