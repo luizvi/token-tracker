@@ -69,7 +69,7 @@ pnpm build
 
 # 6. Link CLI global
 echo ""
-echo "🔗 Linking lv-tracker globally..."
+echo "🔗 Linking CLI globally (tktr + lv-tracker)..."
 (cd "$ROOT/apps/cli" && pnpm link --global) || true
 
 # 7. Render plists
@@ -113,11 +113,11 @@ echo "✅ Install concluído"
 echo ""
 echo "Próximos passos:"
 echo "  • Abra http://localhost:4833"
-echo "  • Rode 'lv-tracker status' para ver estado"
-echo "  • Rode 'lv-tracker backfill' para processar histórico"
+echo "  • Rode 'tktr status' para ver estado"
+echo "  • Rode 'tktr backfill' para processar histórico"
 echo ""
-echo "Comandos úteis:"
-echo "  lv-tracker status   — diagnóstico"
-echo "  lv-tracker logs     — logs do daemon"
-echo "  lv-tracker pause    — pausar"
+echo "Comandos úteis (use 'tktr' ou 'lv-tracker' — equivalentes):"
+echo "  tktr status         — diagnóstico"
+echo "  tktr logs           — logs do daemon"
+echo "  tktr pause          — pausar"
 echo "  ./infra/uninstall.sh — desinstalar"

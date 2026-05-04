@@ -51,6 +51,14 @@ export const DEFAULT_SETTINGS = {
     preferredDisplay: "USD" as "USD" | "BRL",
     fetchAtHourBrt: 6,
   },
+  dashboard: {
+    /** Nome exibido no header da sidebar. Personalize livremente. */
+    brandName: "token-tracker",
+    /** Tagline pequena abaixo do nome. Vazio esconde. */
+    brandTagline: "Local-first analytics",
+    /** Cor de destaque (hex #RRGGBB) aplicada ao nome da brand. */
+    brandAccent: "#22c55e",
+  },
 } as const;
 
 export type Settings = typeof DEFAULT_SETTINGS;
@@ -91,6 +99,9 @@ export const SETTINGS_SCHEMAS: Record<string, z.ZodTypeAny> = {
   "anthropic.planMonthlyCostUsd": z.number().nonnegative().nullable(),
   "currency.preferredDisplay": z.enum(["USD", "BRL"]),
   "currency.fetchAtHourBrt": hour,
+  "dashboard.brandName": z.string().min(1).max(40),
+  "dashboard.brandTagline": z.string().max(80),
+  "dashboard.brandAccent": z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use formato hex #RRGGBB"),
 };
 
 export type SettingKey = keyof typeof SETTINGS_SCHEMAS;

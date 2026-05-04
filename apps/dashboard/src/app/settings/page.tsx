@@ -1,5 +1,6 @@
 import { SettingsForm } from "@/components/settings-form";
 import { PricingEditor } from "@/components/pricing-editor";
+import { BrandEditor } from "@/components/brand-editor";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -12,6 +13,7 @@ export default function SettingsPage() {
           <Link href="/settings/pricing" className="text-accent hover:underline">/settings/pricing</Link>
         </div>
       </div>
+      <BrandEditor />
       <SettingsForm />
       <PricingEditor />
     </div>

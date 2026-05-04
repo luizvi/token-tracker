@@ -8,6 +8,9 @@ echo "🔄 Reload..."
 pnpm install --frozen-lockfile
 pnpm build
 
+# Garante symlinks de bins do CLI (cobre adição de novos bins entre versões)
+(cd "$ROOT/apps/cli" && pnpm link --global) >/dev/null 2>&1 || true
+
 launchctl kickstart -k "gui/$(id -u)/com.lvdev.tracker.daemon"
 launchctl kickstart -k "gui/$(id -u)/com.lvdev.tracker.dashboard"
 

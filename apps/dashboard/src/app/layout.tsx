@@ -1,9 +1,17 @@
 import "./globals.css";
 import { Suspense, type ReactNode } from "react";
+import type { Metadata } from "next";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
+import { getDb } from "@/lib/db";
+import { getSetting } from "@tracker/db";
+import { DEFAULT_SETTINGS } from "@tracker/shared";
 
-export const metadata = { title: "LV Dev Tracker" };
+export function generateMetadata(): Metadata {
+  const db = getDb();
+  const name = getSetting<string>(db, "dashboard.brandName") ?? DEFAULT_SETTINGS.dashboard.brandName;
+  return { title: name };
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "bin": {
+    "tktr": "./dist/bin/lv-tracker.js",
     "lv-tracker": "./dist/bin/lv-tracker.js"
   },
   "scripts": {

@@ -6,7 +6,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Plugin Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2)](https://docs.claude.com/en/docs/claude-code)
 [![macOS](https://img.shields.io/badge/macOS-supported-black?logo=apple)]()
+[![Recomendado com claude-mem](https://img.shields.io/badge/recomendado%20com-claude--mem-22c55e)](https://github.com/thedotmack/claude-mem)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Luiz%20Vi-0A66C2?logo=linkedin)](https://www.linkedin.com/in/luiz-vi/)
+
+> 🧠 **Recomendado:** instale junto com [`claude-mem`](https://github.com/thedotmack/claude-mem). Os dois projetos foram desenhados pra coexistir — `claude-mem` lembra _o que foi feito_, `token-tracker` mede _quanto tempo, tokens e dinheiro custou_. A skill `registro-atividades` deste plugin combina ambos pra gerar timesheet rico em contexto.
 
 > 🇺🇸 English version: [`docs/i18n/README.en.md`](./docs/i18n/README.en.md) (mantida como base para futura internacionalização — pode estar desatualizada).
 
@@ -87,15 +90,17 @@ Se você só usa Claude Code casualmente e não cobra ninguém por isso, este pr
 
 ### CLI
 
+O CLI tem dois nomes equivalentes: **`tktr`** (curto, recomendado) e **`lv-tracker`** (alias mantido por compatibilidade). Os exemplos abaixo usam `tktr`; troque por `lv-tracker` se preferir.
+
 ```bash
-lv-tracker status                          # resumo: pausado?, último tick, erros
-lv-tracker sync                            # força tick agora
-lv-tracker backfill                        # passada histórica completa, uma vez
-lv-tracker tasks recent -n 20              # últimas N tarefas
-lv-tracker hours                           # entrada interativa de horas humanas
-lv-tracker refine --backfilled --project=<nome>
-lv-tracker logs --tail
-lv-tracker open                            # abre o dashboard no browser
+tktr status                          # resumo: pausado?, último tick, erros
+tktr sync                            # força tick agora
+tktr backfill                        # passada histórica completa, uma vez
+tktr tasks recent -n 20              # últimas N tarefas
+tktr hours                           # entrada interativa de horas humanas
+tktr refine --backfilled --project=<nome>
+tktr logs --tail
+tktr open                            # abre o dashboard no browser
 ```
 
 ### Slash commands (de dentro do Claude Code)
@@ -187,14 +192,24 @@ Os slash commands batem em `http://127.0.0.1:${TRACKER_PORT:-4833}/api/manual-ta
 
 ---
 
-## Integração com `claude-mem`
+## Integração com `claude-mem` (fortemente recomendada)
 
-Se você também tem [`claude-mem`](https://github.com/thedotmack/claude-mem) instalado, a skill `registro-atividades` puxa do timeline dele via `mcp__plugin_claude-mem_mcp-search__timeline` e `__search`. Isso te dá contexto narrativo nos dias em que os commits sozinhos não contam a história toda (investigações, reviews de PR, decisões).
+[`claude-mem`](https://github.com/thedotmack/claude-mem) é um plugin separado que dá memória persistente cross-session ao Claude Code. Os dois projetos se complementam:
 
-A integração é **somente leitura e opcional** — `token-tracker` não precisa do `claude-mem`, e vice-versa. Foram desenhados para coexistir:
+- **`claude-mem`** lembra _o que foi decidido, investigado, aprendido_.
+- **`token-tracker`** mede _quanto tempo, tokens e dinheiro custou_.
 
-- `claude-mem` lembra _o que foi decidido, aprendido e entregue_.
-- `token-tracker` mede _quanto tempo, tokens e dinheiro custou_.
+Junto, eles cobrem as duas perguntas que freelas e agências precisam responder no fim do mês: "o que eu entreguei?" e "isso deu lucro?".
+
+**Como integram tecnicamente:**
+A skill `registro-atividades` deste plugin puxa do timeline do `claude-mem` via `mcp__plugin_claude-mem_mcp-search__timeline` e `__search`. Isso te dá contexto narrativo nos dias em que os commits sozinhos não contam a história toda (investigações, reviews de PR, decisões de arquitetura).
+
+A integração é **somente leitura e opcional** — `token-tracker` funciona sem `claude-mem`, mas perde o contexto narrativo no timesheet. Se você usa Claude Code todo dia, vale instalar os dois:
+
+```text
+/plugin install thedotmack/claude-mem
+/plugin install luizvi/token-tracker
+```
 
 ---
 
