@@ -10,15 +10,23 @@
   font-display: swap;
 }
 
+/*
+ * --color-accent é o accent base — definido inline no <html> pelo layout server-side
+ * a partir de dashboard.brandAccent. Os defaults aqui são fallback quando settings ainda
+ * não foram lidas (boot, SSR sem DB).
+ */
 :root,
 [data-theme="light"] {
+  --color-accent: #1fe879;
+  --color-accent-hover: #1bd16d;
+  --color-accent-fg: #0a3d20;
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #efebe4;
   --color-bg-tertiary: #f0f0f0;
   --color-bg-card: #ffffff;
   --color-bg-card-hover: #f6f8fa;
   --color-border-primary: #d0d7de;
-  --color-border-hover: #1fe879;
+  --color-border-hover: var(--color-accent);
   --color-text-primary: #2b2520;
   --color-text-secondary: #5a5248;
   --color-text-muted: #8f8a7e;
@@ -31,7 +39,7 @@
   --color-bg-card: #252320;
   --color-bg-card-hover: #2d2a26;
   --color-border-primary: #3a3834;
-  --color-border-hover: #1fe879;
+  --color-border-hover: var(--color-accent);
   --color-text-primary: #dcd6cc;
   --color-text-secondary: #b8b0a4;
   --color-text-muted: #7a7266;
@@ -45,7 +53,7 @@
     --color-bg-card: #252320;
     --color-bg-card-hover: #2d2a26;
     --color-border-primary: #3a3834;
-    --color-border-hover: #1fe879;
+    --color-border-hover: var(--color-accent);
     --color-text-primary: #dcd6cc;
     --color-text-secondary: #b8b0a4;
     --color-text-muted: #7a7266;
@@ -67,20 +75,23 @@ body {
 }
 
 .btn-primary {
-  background: #1fe879;
-  color: #0a3d20;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
   font-weight: 500;
   border-radius: 4px;
   padding: 8px 14px;
 }
-.btn-primary:hover { background: #1bd16d; }
+.btn-primary:hover { background: var(--color-accent-hover); }
 
 .chip { display: inline-flex; padding: 2px 8px; border-radius: 999px; font-size: 11px; }
 .chip-backfilled { opacity: 0.6; }
 
+/* Cores semânticas — fixas, NÃO seguem o accent (significado independente) */
 .text-danger { color: #d1242f; }
 .text-warning { color: #d4a72c; }
-.text-accent { color: #1fe879; }
+
+.text-accent { color: var(--color-accent); }
+.bg-accent { background-color: var(--color-accent); }
 
 /* Animação leve para entradas de página */
 @keyframes lvFadeIn {
@@ -97,12 +108,16 @@ body {
 /* Tabela: cell padding consistente */
 table.font-mono td, table.font-mono th { line-height: 1.4; }
 
-/* Bg-accent/N opacities (Tailwind v3 não interpola via opacity quando cor é hex direto) */
-.bg-accent\/5 { background-color: rgba(31, 232, 121, 0.05); }
-.bg-accent\/8 { background-color: rgba(31, 232, 121, 0.08); }
-.bg-accent\/10 { background-color: rgba(31, 232, 121, 0.10); }
-.bg-accent\/15 { background-color: rgba(31, 232, 121, 0.15); }
-.border-accent\/30 { border-color: rgba(31, 232, 121, 0.30); }
+/*
+ * Opacidades do accent via color-mix (Safari 16.2+/Chrome 111+/Firefox 113+).
+ * Estas classes existem porque Tailwind v3 não interpola opacity quando a cor é var.
+ */
+.bg-accent\/5 { background-color: color-mix(in srgb, var(--color-accent) 5%, transparent); }
+.bg-accent\/8 { background-color: color-mix(in srgb, var(--color-accent) 8%, transparent); }
+.bg-accent\/10 { background-color: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.bg-accent\/15 { background-color: color-mix(in srgb, var(--color-accent) 15%, transparent); }
+.border-accent\/30 { border-color: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+
 .bg-bg-primary\/80 { background-color: rgba(26, 25, 22, 0.8); }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) .bg-bg-primary\/80 { background-color: rgba(255, 255, 255, 0.8); }

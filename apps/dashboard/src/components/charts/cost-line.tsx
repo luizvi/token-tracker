@@ -21,8 +21,8 @@ export function CostLine({
       <LineChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
         <defs>
           <linearGradient id="costLineGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1fe879" stopOpacity={0.4} />
-            <stop offset="100%" stopColor="#1fe879" stopOpacity={0} />
+            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.4} />
+            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid stroke="var(--color-border-primary)" strokeOpacity={0.3} vertical={false} />
@@ -32,16 +32,16 @@ export function CostLine({
           contentStyle={TOOLTIP_STYLE}
           itemStyle={TOOLTIP_ITEM_STYLE}
           labelStyle={TOOLTIP_LABEL_STYLE}
-          cursor={{ stroke: "#1fe879", strokeOpacity: 0.3, strokeWidth: 1 }}
+          cursor={{ stroke: "var(--color-accent)", strokeOpacity: 0.3, strokeWidth: 1 }}
           formatter={(v: number) => [formatter(v), "Custo"]}
         />
         <Line
           type="monotone"
           dataKey="cost"
-          stroke="#1fe879"
+          stroke="var(--color-accent)"
           strokeWidth={2.5}
           dot={false}
-          activeDot={{ r: 5, fill: "#1fe879", stroke: "var(--color-bg-card)", strokeWidth: 2 }}
+          activeDot={{ r: 5, fill: "var(--color-accent)", stroke: "var(--color-bg-card)", strokeWidth: 2 }}
           fill="url(#costLineGrad)"
         />
       </LineChart>

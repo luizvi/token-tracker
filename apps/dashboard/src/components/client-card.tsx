@@ -61,7 +61,7 @@ export function ClientCard({
   costToleranceBelow?: number;
   costToleranceAbove?: number;
 }) {
-  const accent = data.color ?? "#1fe879";
+  const accent = data.color ?? "var(--color-accent)";
 
   // Normaliza hourLimit pra equivalente mensal (semana → ×30/7).
   const hourLimitMonthly = data.hourLimit !== null

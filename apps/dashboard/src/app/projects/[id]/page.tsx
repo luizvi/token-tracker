@@ -43,8 +43,10 @@ export default async function ProjectDetail({
             <div
               className="w-3 h-3 rounded-full flex-shrink-0"
               style={{
-                background: project.color ?? "#1fe879",
-                boxShadow: `0 0 8px ${project.color ?? "#1fe879"}40`,
+                background: project.color ?? "var(--color-accent)",
+                boxShadow: project.color
+                  ? `0 0 8px ${project.color}40`
+                  : "0 0 8px color-mix(in srgb, var(--color-accent) 25%, transparent)",
               }}
             />
             <h2 className="text-2xl font-semibold truncate">{project.name}</h2>

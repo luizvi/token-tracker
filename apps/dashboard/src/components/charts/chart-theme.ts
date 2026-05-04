@@ -1,21 +1,24 @@
-// Paleta de verdes (gradiente do accent base #1fe879)
-export const GREEN_PALETTE = [
-  "#1fe879",
-  "#16d96e",
-  "#0ec963",
-  "#08b95a",
-  "#04a850",
-  "#019848",
-  "#018540",
-  "#017337",
-];
+/**
+ * Tema dos charts. Cor base = var(--color-accent) (definido inline no <html> pelo layout
+ * a partir de dashboard.brandAccent). Variações geradas via color-mix com bg-card.
+ */
 
-export function greenForIndex(i: number, total: number): string {
-  if (total <= 1) return GREEN_PALETTE[0]!;
+export const ACCENT = "var(--color-accent)";
+
+/**
+ * Gradiente de variações da accent: posição 0 = accent puro,
+ * posição (n-1) = accent misturado com bg-card. Pra usar em séries de barras/áreas.
+ */
+export function accentForIndex(i: number, total: number): string {
+  if (total <= 1) return ACCENT;
   const ratio = i / Math.max(1, total - 1);
-  const idx = Math.min(GREEN_PALETTE.length - 1, Math.floor(ratio * (GREEN_PALETTE.length - 1)));
-  return GREEN_PALETTE[idx]!;
+  // 0% mix = accent puro; até ~70% mix com bg-card no fim do gradiente.
+  const mix = Math.round(ratio * 70);
+  return `color-mix(in srgb, var(--color-accent) ${100 - mix}%, var(--color-bg-card))`;
 }
+
+/** Mantém o nome legado pra evitar churn nos componentes. */
+export const greenForIndex = accentForIndex;
 
 export const TOOLTIP_STYLE = {
   background: "var(--color-bg-card)",
@@ -41,4 +44,4 @@ export const AXIS_TICK_STYLE = {
   fill: "var(--color-text-muted)",
 } as const;
 
-export const TOOLTIP_CURSOR_FILL = "rgba(31, 232, 121, 0.08)";
+export const TOOLTIP_CURSOR_FILL = "color-mix(in srgb, var(--color-accent) 8%, transparent)";

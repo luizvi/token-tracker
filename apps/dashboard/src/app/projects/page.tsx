@@ -74,7 +74,7 @@ export default async function ProjectsPage({
             <div className="flex items-center gap-2 min-w-0">
               <div
                 className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                style={{ background: p.color ?? "#1fe879" }}
+                style={{ background: p.color ?? "var(--color-accent)" }}
               />
               <h3 className="font-semibold truncate group-hover:text-accent transition-colors">
                 {p.name}

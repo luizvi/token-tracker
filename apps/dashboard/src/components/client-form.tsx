@@ -18,7 +18,8 @@ const EMPTY = {
   contractStartAt: "",
   contractRenewalAt: "",
   renewalNoticeDays: "",
-  color: "#1fe879",
+  // vazio = herda do tema (dashboard.brandAccent)
+  color: "",
   notes: "",
 };
 
@@ -36,7 +37,7 @@ export function ClientForm({ onCreated }: { onCreated?: () => void }) {
       name: form.name.trim(),
       kind: form.kind,
       billableFactor: Number(form.billableFactor) || 0.4,
-      color: form.color,
+      color: form.color || null,
       notes: form.notes || null,
       hourLimitValue: form.hourLimitValue ? Number(form.hourLimitValue) : null,
       hourLimitPeriod: form.hourLimitValue ? form.hourLimitPeriod : null,
@@ -105,8 +106,19 @@ export function ClientForm({ onCreated }: { onCreated?: () => void }) {
           <label className="block">
             <span className="text-xs text-text-muted">Cor</span>
             <div className="flex items-center gap-2 mt-1">
-              <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="bg-bg-card border border-border rounded h-9 w-12 cursor-pointer" />
-              <input type="text" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="bg-bg-card border border-border rounded px-3 py-2 flex-1 font-mono text-sm focus:border-hover focus:outline-none" />
+              {form.color ? (
+                <>
+                  <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="bg-bg-card border border-border rounded h-9 w-12 cursor-pointer" />
+                  <input type="text" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="bg-bg-card border border-border rounded px-3 py-2 flex-1 font-mono text-sm focus:border-hover focus:outline-none" />
+                  <button type="button" onClick={() => setForm({ ...form, color: "" })} className="text-xs text-text-muted hover:text-text-primary px-2 py-1" title="Remover (herda do tema)">↺</button>
+                </>
+              ) : (
+                <>
+                  <div className="h-9 w-12 rounded border border-border" style={{ background: "var(--color-accent)" }} title="Cor do tema atual" />
+                  <button type="button" onClick={() => setForm({ ...form, color: "#22c55e" })} className="text-xs px-3 py-2 border border-border rounded hover:border-hover">Personalizar</button>
+                  <span className="text-[11px] text-text-muted">herda do tema</span>
+                </>
+              )}
             </div>
           </label>
         </div>

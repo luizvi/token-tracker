@@ -21,9 +21,9 @@ const config: Config = {
           muted: "var(--color-text-muted)",
         },
         accent: {
-          DEFAULT: "#1fe879",
-          hover: "#1bd16d",
-          fg: "#0a3d20",
+          DEFAULT: "var(--color-accent)",
+          hover: "var(--color-accent-hover)",
+          fg: "var(--color-accent-fg)",
         },
         danger: "#d1242f",
         warning: "#d4a72c",

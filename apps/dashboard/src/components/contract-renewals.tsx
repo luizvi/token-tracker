@@ -38,7 +38,7 @@ export function ContractRenewals({ alerts }: { alerts: RenewalAlert[] }) {
               href={`/clients/${a.clientId}`}
               className="flex items-center gap-3 text-sm py-1 px-2 rounded hover:bg-bg-tertiary/30"
             >
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: a.color ?? "#1fe879" }} />
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: a.color ?? "var(--color-accent)" }} />
               <span className="flex-1 truncate">{a.clientName}</span>
               <span className={`text-xs font-mono ${statusColor(a.daysUntil)}`}>{statusLabel(a.daysUntil)}</span>
               <span className="text-xs text-text-muted font-mono">{new Date(a.renewalAt).toLocaleDateString("pt-BR")}</span>

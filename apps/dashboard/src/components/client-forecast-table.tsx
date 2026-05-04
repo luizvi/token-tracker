@@ -100,7 +100,7 @@ export function ClientForecastTable({
               <tr key={r.id} className={`${i % 2 === 0 ? "bg-bg-tertiary/15" : ""}`}>
                 <td className="py-1.5 px-2">
                   <Link href={`/clients/${r.id}`} className="hover:text-accent flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.color ?? "#1fe879" }} />
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.color ?? "var(--color-accent)" }} />
                     {r.name}
                   </Link>
                 </td>

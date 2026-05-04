@@ -61,8 +61,7 @@ export function SidebarShell({ brand }: { brand: SidebarBrand }) {
         {!collapsed && (
           <div className="flex-1 min-w-0">
             <h1
-              className="text-lg font-bold truncate"
-              style={{ color: brand.accent }}
+              className="text-lg font-bold truncate text-accent"
               title={brand.name}
             >
               {brand.name}

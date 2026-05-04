@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const KEYS = {
   name: "dashboard.brandName",
@@ -17,6 +18,7 @@ const DEFAULT_BRAND: Brand = {
 };
 
 export function BrandEditor() {
+  const router = useRouter();
   const [brand, setBrand] = useState<Brand>(DEFAULT_BRAND);
   const [loading, setLoading] = useState(true);
   const [savedKey, setSavedKey] = useState<string | null>(null);
@@ -48,6 +50,9 @@ export function BrandEditor() {
     }
     setSavedKey(key);
     setTimeout(() => setSavedKey(null), 1500);
+    // Invalida cache do RSC pra que o layout (sidebar/title/CSS vars) re-renderize
+    // sem precisar de F5. Layout está marcado como force-dynamic.
+    router.refresh();
   }
 
   if (loading) return <p>Carregando...</p>;
@@ -56,17 +61,10 @@ export function BrandEditor() {
     <section className="card p-4 space-y-4">
       <div className="flex items-baseline justify-between">
         <h3 className="font-semibold">Identidade do Dashboard</h3>
-        <button
-          type="button"
-          onClick={() => location.reload()}
-          className="text-[11px] text-accent hover:underline"
-          title="Recarregar pra ver mudanças aplicadas no header"
-        >
-          ↻ recarregar página
-        </button>
+        <span className="text-[11px] text-text-muted">aplica em todo o sistema</span>
       </div>
       <p className="text-[11px] text-text-muted">
-        Personalize o nome, tagline e cor exibidos no canto superior esquerdo. Mudanças aplicam ao recarregar a página.
+        Personalize nome, tagline e <strong>cor de destaque</strong>. A cor afeta sidebar, links, botões, gráficos e clientes que não têm cor própria. Mudanças aplicam imediatamente — sem reload.
       </p>
 
       <label className="flex items-center gap-3">

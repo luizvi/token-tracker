@@ -6,8 +6,8 @@ const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 function colorFor(value: number, max: number): string {
   if (max <= 0 || value <= 0) return "var(--color-bg-tertiary)";
   const ratio = Math.min(1, value / max);
-  const alpha = 0.08 + ratio * 0.92;
-  return `rgba(31, 232, 121, ${alpha.toFixed(3)})`;
+  const pct = (8 + ratio * 92).toFixed(1);
+  return `color-mix(in srgb, var(--color-accent) ${pct}%, transparent)`;
 }
 
 export function HoursHeatmap({ matrix }: { matrix: number[][] }) {
