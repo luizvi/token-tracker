@@ -1,5 +1,7 @@
 # token-tracker
 
+> ⚠️ **This English version is outdated.** The PT-BR README ([`../../README.md`](../../README.md)) was restructured with new positioning, "who it's for" sections, and a sponsor block. This file is preserved as the i18n base — translation of the new structure is on the roadmap.
+
 Local-first token, cost, and time analytics for **Claude Code**.
 
 `token-tracker` ingests your Claude Code JSONL transcripts (`~/.claude/projects/**`),

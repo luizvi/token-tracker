@@ -1,41 +1,63 @@
 # token-tracker
 
-Analytics local-first de tokens, custo e tempo para o **Claude Code**.
+> **Sabe exatamente quanto cada projeto Claude Code te custou — em tokens, dólar, real e horas faturáveis.**
+> Local-first. Roda na sua máquina, não sobe nada. Built para devs que tratam IA como custo e horas como receita.
 
-> Versão em inglês: [`docs/i18n/README.en.md`](./docs/i18n/README.en.md) (mantida como base para futura internacionalização — pode ficar desatualizada em relação a este).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Plugin Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2)](https://docs.claude.com/en/docs/claude-code)
+[![macOS](https://img.shields.io/badge/macOS-supported-black?logo=apple)]()
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Luiz%20Vi-0A66C2?logo=linkedin)](https://www.linkedin.com/in/luiz-vi/)
 
-O `token-tracker` lê os transcripts JSONL do Claude Code (`~/.claude/projects/**`),
-agrupa as mensagens em "tarefas" via heurística e mostra exatamente quantos
-tokens você queimou, em qual projeto, contra qual cliente, por quanto dinheiro —
-em USD e BRL — além das horas faturáveis derivadas do tempo real de conversa.
-
-Roda 100% na sua máquina. Nenhum dado sai da interface de loopback.
-
-Também funciona como **plugin do Claude Code**: adiciona slash commands para o
-próprio Claude abrir, pausar e fechar tasks manuais contra o dashboard local, e
-inclui a skill `registro-atividades` que combina `git log`, `claude-mem` e o
-banco do tracker para gerar relatórios de atividades prontos para planilha de
-horas.
-
-> **Status:** funcional, em uso diário pelo autor. macOS apenas (LaunchAgent).
-> O repositório está privado enquanto API e schema estabilizam.
+> 🇺🇸 English version: [`docs/i18n/README.en.md`](./docs/i18n/README.en.md) (mantida como base para futura internacionalização — pode estar desatualizada).
 
 ---
 
-## O que você ganha
+## O problema
 
-- **Contabilidade por tarefa** — cada bloco de conversa é dimensionado em tokens de input/output/cache, precificado contra `model_pricing` válido no `started_at` da tarefa, e marcado com tempo de relógio + tempo ativo.
-- **USD ↔ BRL** — taxa diária da AwesomeAPI cacheada em `currency_rates`. BRL é computado em tempo de leitura, então relatórios históricos ficam consistentes.
-- **Horas faturáveis por cliente** — clientes têm hourly rate, expectativa de horas mensais, budget de custo de IA e datas contratuais. O dashboard projeta margem e renovação.
-- **Tasks manuais** — para trabalho fora do Claude Code (reuniões, código manual, reviews). Iniciadas/pausadas/fechadas via slash command de qualquer sessão CC.
-- **Refinamento via Haiku (opcional)** — se `ANTHROPIC_API_KEY` ou `CLAUDE_CODE_OAUTH_TOKEN` estiver configurado, o daemon faz batches de chamadas pequenas ao Haiku para nomear tarefas e estimar horas-humano.
-- **Dashboard** — Next.js standalone em `127.0.0.1:4833` com filtros, forecast, insights, reconstrução de transcript em tarefas mescladas e tracking de renovação contratual.
-- **CLI** — `lv-tracker` para status, sync, backfill, refine, input de horas, logs.
-- **Diagnóstico embutido** — todo tick do daemon escreve uma linha em `daemon_runs`; `/diagnostics` e `lv-tracker logs` leem dali, não dos arquivos de log.
+Você usa Claude Code todo dia. No fim do mês:
+
+- Não sabe **qual cliente queimou mais token**.
+- Não sabe **se o projeto X ainda tá dando margem** ou se o custo de IA virou prejuízo.
+- Lembra "mais ou menos" das horas trabalhadas — e na hora de faturar, chuta.
+- Olha pro `console.anthropic.com` e vê só um número agregado, sem dizer onde foi gasto.
+
+`token-tracker` resolve isso lendo os transcripts JSONL do próprio Claude Code (`~/.claude/projects/**`), agrupando mensagens em "tarefas" via heurística, e mostrando — por tarefa, projeto e cliente — quantos tokens, quanto USD/BRL, quanto tempo, e quantas horas faturáveis. Tudo em um dashboard local em `127.0.0.1:4833`.
+
+**Nada sai da sua máquina.** Sem telemetria. Sem cloud. Sem auth porque é loopback.
 
 ---
 
-## Arquitetura
+## Pra quem é
+
+Se você se reconhece em qualquer um desses, vai gostar:
+
+🧑‍💻 **Dev solo / freela faturando por hora**
+Quer saber se a hora cobrada cobre o custo de IA, e quer relatório de horas pronto pra planilha do cliente.
+
+🏢 **Agência ou estúdio com múltiplos contratos**
+Vários projetos rodando em paralelo, cada um com hourly rate, budget mensal de IA, data de renovação. Precisa ver margem por cliente, não só custo total.
+
+🔬 **Dev solo controlando uso pessoal**
+Tem plano Max/Pro e quer entender onde tá o custo escondido — qual repo, qual sessão, qual tarefa virou rabbit hole. Tracking obsessivo de produtividade pessoal.
+
+Se você só usa Claude Code casualmente e não cobra ninguém por isso, este projeto provavelmente é overkill — mas você é bem-vindo.
+
+---
+
+## O que você vê no dashboard
+
+- **Tarefas** com título refinado por Haiku, custo USD/BRL, duração de relógio, tempo ativo, horas humanas estimadas.
+- **Forecast por cliente** — projeção de horas faturáveis e margem até o fim do mês, comparando contra hourly rate e budget de IA contratado.
+- **Renovação contratual** — datas de início/fim, alerta de aproximação.
+- **Insights via Haiku (opcional)** — resumo executivo do mês com base em revenue + custos reais.
+- **Tasks manuais** — pra trabalho fora do Claude Code (reuniões, código manual, reviews). Iniciadas/pausadas/fechadas via slash command de qualquer sessão CC.
+- **Diagnóstico embutido** — toda execução do daemon escreve métrica em `daemon_runs`; `/diagnostics` e `lv-tracker logs` leem dali, não dos arquivos de log.
+
+> 💡 **Status:** funcional, em uso diário pelo autor desde o início de 2026. macOS apenas (LaunchAgent). Open source MIT.
+
+---
+
+## Como funciona (visão de 30 segundos)
 
 ```
 ~/.claude/projects/**.jsonl
@@ -57,15 +79,53 @@ horas.
  (Next 15)                 (este plugin)    (plugin separado)
 ```
 
-**Invariante de DB único.** Daemon, dashboard e CLI abrem o mesmo arquivo
-SQLite (`data/tracker.db`) via o pacote `@tracker/db`, com WAL +
-`foreign_keys=ON` + `synchronous=NORMAL`. O daemon é o único escritor para
-dados derivados de ingestão; dashboard/CLI escrevem só campos editados pelo
-usuário (manual hours, settings, manual_events, manual tasks).
+**Invariante de DB único.** Daemon, dashboard e CLI abrem o mesmo arquivo SQLite (`data/tracker.db`) via o pacote `@tracker/db`, com WAL + `foreign_keys=ON` + `synchronous=NORMAL`. O daemon é o único escritor para dados derivados de ingestão; dashboard/CLI escrevem só campos editados pelo usuário (manual hours, settings, manual_events, manual tasks).
 
 ---
 
-## Requisitos
+## Uso no dia a dia
+
+### CLI
+
+```bash
+lv-tracker status                          # resumo: pausado?, último tick, erros
+lv-tracker sync                            # força tick agora
+lv-tracker backfill                        # passada histórica completa, uma vez
+lv-tracker tasks recent -n 20              # últimas N tarefas
+lv-tracker hours                           # entrada interativa de horas humanas
+lv-tracker refine --backfilled --project=<nome>
+lv-tracker logs --tail
+lv-tracker open                            # abre o dashboard no browser
+```
+
+### Slash commands (de dentro do Claude Code)
+
+```text
+/iniciar-task implementando integração com webhook
+# → abre task manual marcada com $PWD atual
+
+/pausar-task
+# → pausa a task manual aberta
+
+/concluir-task
+# → fecha a task manual aberta
+```
+
+### Skill de relatório de atividades
+
+```text
+/registro-atividades últimas 2 semanas
+```
+
+Gera uma tabela markdown com uma linha por dia, descrições consolidando git log, timeline do `claude-mem` (se instalado), API do `token-tracker` e, opcionalmente, `gh pr list`. Coluna de estimativa de horas é opcional.
+
+---
+
+## Instalação
+
+São dois caminhos independentes. O **plugin** dá ao Claude Code os slash commands. O **backend** ingere transcripts e serve o dashboard. Normalmente você quer os dois.
+
+### Requisitos
 
 - **macOS** — daemon e dashboard rodam como LaunchAgents (`launchctl`). Linux/Windows não são suportados hoje.
 - **Node ≥ 20** — auto-detectado pelo instalador.
@@ -73,14 +133,6 @@ usuário (manual hours, settings, manual_events, manual tasks).
 - **`jq`** — usado pelos slash commands. `brew install jq`.
 - **Claude Code** — para gerar os transcripts JSONL que serão ingeridos.
 - **(opcional) chave Anthropic API ou token OAuth do Claude Code** — sem isso a ingestão ainda funciona; só refinamento/estimativa via Haiku ficam desligados.
-
----
-
-## Instalação
-
-São dois caminhos independentes. O **plugin** dá ao Claude Code os slash
-commands. O **backend** ingere transcripts e serve o dashboard. Normalmente
-você quer os dois.
 
 ### 1. Backend (daemon + dashboard + CLI)
 
@@ -116,9 +168,7 @@ Outros scripts de ciclo de vida:
 
 ### 2. Plugin do Claude Code (slash commands + skill)
 
-Este repositório também é seu próprio marketplace do Claude Code, então dá pra
-instalar o plugin direto da URL do GitHub assim que o Claude Code conseguir
-alcançar o repo.
+Este repositório também é seu próprio marketplace do Claude Code, então dá pra instalar o plugin direto da URL do GitHub.
 
 ```text
 /plugin install luizvi/token-tracker
@@ -133,61 +183,15 @@ Isso registra quatro entradas dentro do Claude Code:
 | `/concluir-task` | Fecha a task manual aberta para o `cwd` atual. |
 | skill `registro-atividades` | Gera tabela diária de timesheet a partir de `git log` + timeline do `claude-mem` + histórico do `token-tracker`. Disparada por frases como "registro de atividades", "timesheet", "recapitular trabalho". |
 
-Os slash commands batem em `http://127.0.0.1:${TRACKER_PORT:-4833}/api/manual-tasks`.
-Se o dashboard não estiver rodando, os comandos falham na cara — não enfileiram.
-
----
-
-## Uso
-
-### CLI
-
-```bash
-lv-tracker status                          # resumo: pausado?, último tick, erros
-lv-tracker sync                            # força tick agora
-lv-tracker backfill                        # passada histórica completa, uma vez
-lv-tracker tasks recent -n 20              # últimas N tarefas
-lv-tracker hours                           # entrada interativa de horas humanas
-lv-tracker refine --backfilled --project=<nome>
-lv-tracker logs --tail
-lv-tracker open                            # abre o dashboard no browser
-```
-
-### Slash commands (de dentro do Claude Code)
-
-```text
-/iniciar-task implementando integração com webhook
-# → abre task manual marcada com $PWD atual
-
-/pausar-task
-# → pausa a task manual aberta
-
-/concluir-task
-# → fecha a task manual aberta
-```
-
-### Skill de relatório de atividades
-
-```text
-/registro-atividades últimas 2 semanas
-```
-
-Gera uma tabela markdown com uma linha por dia, descrições consolidando git
-log, timeline do `claude-mem` (se instalado), API do `token-tracker` e,
-opcionalmente, `gh pr list`. Coluna de estimativa de horas é opcional.
+Os slash commands batem em `http://127.0.0.1:${TRACKER_PORT:-4833}/api/manual-tasks`. Se o dashboard não estiver rodando, os comandos falham na cara — não enfileiram.
 
 ---
 
 ## Integração com `claude-mem`
 
-Se você também tem [`claude-mem`](https://github.com/thedotmack/claude-mem)
-instalado, a skill `registro-atividades` puxa do timeline dele via
-`mcp__plugin_claude-mem_mcp-search__timeline` e `__search`. Isso te dá
-contexto narrativo nos dias em que os commits sozinhos não contam a história
-toda (investigações, reviews de PR, decisões).
+Se você também tem [`claude-mem`](https://github.com/thedotmack/claude-mem) instalado, a skill `registro-atividades` puxa do timeline dele via `mcp__plugin_claude-mem_mcp-search__timeline` e `__search`. Isso te dá contexto narrativo nos dias em que os commits sozinhos não contam a história toda (investigações, reviews de PR, decisões).
 
-A integração é **somente leitura e opcional** — `token-tracker` não precisa do
-`claude-mem`, e vice-versa. Foram desenhados para coexistir:
+A integração é **somente leitura e opcional** — `token-tracker` não precisa do `claude-mem`, e vice-versa. Foram desenhados para coexistir:
 
 - `claude-mem` lembra _o que foi decidido, aprendido e entregue_.
 - `token-tracker` mede _quanto tempo, tokens e dinheiro custou_.
@@ -196,8 +200,7 @@ A integração é **somente leitura e opcional** — `token-tracker` não precis
 
 ## Configuração
 
-Variáveis de ambiente (todas opcionais exceto chaves para features Haiku).
-Carregadas de `.env` na raiz do repo pelo daemon via `process.env`:
+Variáveis de ambiente (todas opcionais exceto chaves para features Haiku). Carregadas de `.env` na raiz do repo pelo daemon via `process.env`:
 
 | Var | Default | Função |
 |---|---|---|
@@ -211,10 +214,7 @@ Carregadas de `.env` na raiz do repo pelo daemon via `process.env`:
 | `HOSTNAME` | `127.0.0.1` | Bind do dashboard. **Sempre loopback — não há auth.** |
 | `TRACKER_PORT` | `4833` | Usada pelos slash commands para alcançar o dashboard. Sobrescrever se você rodou o dashboard em outra porta. |
 
-Settings de runtime (gap thresholds, idle close hours, batching do Haiku, flag
-de pausa do daemon) ficam na tabela `settings` e são editáveis pela página
-`/settings` do dashboard. Mudanças entram em vigor no próximo tick — sem
-restart do daemon.
+Settings de runtime (gap thresholds, idle close hours, batching do Haiku, flag de pausa do daemon) ficam na tabela `settings` e são editáveis pela página `/settings` do dashboard. Mudanças entram em vigor no próximo tick — sem restart do daemon.
 
 ---
 
@@ -294,9 +294,11 @@ launchctl kickstart -k gui/$UID/com.lvdev.tracker.dashboard
 
 ## Roadmap
 
-- **Agora:** estabilizando schema e dashboard. Repo privado; este README é o contrato pra qualquer release público futuro.
+- **Agora:** estabilizando schema, dashboard e API pública.
 - **Próximo:** updates SSE em tempo real, embeddings semânticos como fallback do detector, status line opcional do CC (`lv-tracker statusline`), README internacionalizado a partir do backup em `docs/i18n/`.
 - **Depois:** app nativo macOS na menu bar, sync multi-máquina (DB no iCloud ou hook rsync), daemon multiplataforma (unidade systemd no Linux).
+
+Tem ideia, dor parecida ou caso de uso interessante? Abre uma issue ou me chama no [LinkedIn](https://www.linkedin.com/in/luiz-vi/).
 
 ---
 
@@ -305,7 +307,20 @@ launchctl kickstart -k gui/$UID/com.lvdev.tracker.dashboard
 - O dashboard escuta **só `127.0.0.1`**. Não há auth; não exponha.
 - Transcripts contêm tudo o que você digitou e o que o Claude respondeu. O daemon redacts segredos óbvios (`packages/shared/src/redact.ts`) antes de persistir resumos, mas os JSONL originais em `~/.claude/projects/` ficam intocados.
 - `data/` (DB, backups, logs, state) é gitignored. `.env` é gitignored e fica em `chmod 600` após o instalador.
-- Este projeto não faz phone home, não envia telemetria, não sobe nada. Só chama a AwesomeAPI para USD-BRL e (se você optar) a API da Anthropic para refinamento Haiku.
+- Este projeto **não faz phone home**, não envia telemetria, não sobe nada. Só chama a AwesomeAPI para USD-BRL e (se você optar) a API da Anthropic para refinamento Haiku.
+
+---
+
+## Apoie o projeto
+
+Este projeto é open source e gratuito. Se ele te economizou tempo, dor de cabeça ou descobriu um cliente que tava no prejuízo, considere:
+
+- ⭐ **Dar uma estrela no repo** — ajuda outras pessoas a encontrarem.
+- 💸 **Pix (Brasil)** — chave aleatória: `28ab8119-c379-479d-bf2f-03f17eb7cfa1`
+- 💼 **LinkedIn** — [Luiz Vi](https://www.linkedin.com/in/luiz-vi/) (conecta, comenta, compartilha — alcance vale tanto quanto Pix)
+- 🐛 **Issue ou PR** — feedback honesto vale mais que doação. Se algo quebrou, me conta.
+
+Se você usa o tracker num contexto comercial (agência, estúdio, time), considera dar uma referência no LinkedIn ou indicar pra colegas — isso ajuda muito mais do que parece.
 
 ---
 
