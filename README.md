@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Plugin Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2)](https://docs.claude.com/en/docs/claude-code)
 [![macOS](https://img.shields.io/badge/macOS-supported-black?logo=apple)]()
+[![Horas faturáveis: como funciona](https://img.shields.io/badge/docs-horas%20faturáveis-0a66c2)](./docs/horas-faturaveis.md)
 [![Recomendado com claude-mem](https://img.shields.io/badge/recomendado%20com-claude--mem-22c55e)](https://github.com/thedotmack/claude-mem)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Luiz%20Vi-0A66C2?logo=linkedin)](https://www.linkedin.com/in/luiz-vi/)
 
@@ -88,22 +89,22 @@ Se você só usa Claude Code casualmente e não cobra ninguém por isso, este pr
 
 ## Uso no dia a dia
 
-### CLI
+### Tudo é automático por default
 
-O CLI tem dois nomes equivalentes: **`tktr`** (curto, recomendado) e **`lv-tracker`** (alias mantido por compatibilidade). Os exemplos abaixo usam `tktr`; troque por `lv-tracker` se preferir.
+Depois de instalado, **você não precisa fazer nada**. O daemon roda em background a cada 60 segundos e:
 
-```bash
-tktr status                          # resumo: pausado?, último tick, erros
-tktr sync                            # força tick agora
-tktr backfill                        # passada histórica completa, uma vez
-tktr tasks recent -n 20              # últimas N tarefas
-tktr hours                           # entrada interativa de horas humanas
-tktr refine --backfilled --project=<nome>
-tktr logs --tail
-tktr open                            # abre o dashboard no browser
-```
+- 📥 **Lê os JSONL** do Claude Code conforme você usa.
+- 🧩 **Agrupa mensagens em tarefas** via heurística (gap de tempo + similaridade Jaccard + keywords de retomada).
+- 🏷️ **Refina título e categoria** via Haiku (se `ANTHROPIC_API_KEY` ou OAuth token configurado).
+- ⏱️ **Calcula tempo derivado**, custo USD/BRL e horas humanas estimadas.
+- 🔗 **Vincula ao cliente** automaticamente via mapeamento `cwd → projeto → cliente`.
+- 💾 **Faz backup diário** às 03:00 BRT.
 
-### Slash commands (de dentro do Claude Code)
+Você abre o dashboard em `http://127.0.0.1:4833` e tudo já tá lá. **A maioria dos usuários não precisa do CLI nem dos slash commands** — funciona sem mexer em nada.
+
+### Quando você quer controle manual: slash commands no Claude Code
+
+Pra trabalho **fora do Claude Code** (reuniões, código manual, code review, debug em produção), use os slash commands do plugin pra registrar manualmente:
 
 ```text
 /iniciar-task implementando integração com webhook
@@ -116,13 +117,45 @@ tktr open                            # abre o dashboard no browser
 # → fecha a task manual aberta
 ```
 
+Tasks manuais somam às automáticas no forecast e no timesheet, sem duplicação.
+
 ### Skill de relatório de atividades
+
+Pede via prompt natural — a skill `registro-atividades` é disparada por frases como "registro de atividades", "timesheet" ou "recapitular trabalho":
 
 ```text
 /registro-atividades últimas 2 semanas
 ```
 
-Gera uma tabela markdown com uma linha por dia, descrições consolidando git log, timeline do `claude-mem` (se instalado), API do `token-tracker` e, opcionalmente, `gh pr list`. Coluna de estimativa de horas é opcional.
+Gera tabela markdown diária consolidando git log + timeline do `claude-mem` (se instalado) + histórico do `token-tracker` + opcionalmente `gh pr list`. Pronta pra colar em planilha de horas.
+
+### CLI (opcional, conveniência)
+
+O daemon faz tudo sozinho — o CLI só serve pra **diagnóstico, controle pontual e operações batch** que você não quer fazer pelo dashboard. Tem dois nomes equivalentes: **`tktr`** (curto, recomendado) e **`lv-tracker`** (alias mantido por compatibilidade).
+
+```bash
+tktr status                          # resumo: pausado?, último tick, erros
+tktr sync                            # força tick agora (ao invés de esperar 60s)
+tktr backfill                        # passada histórica completa, uma vez
+tktr tasks recent -n 20              # últimas N tarefas
+tktr hours                           # entrada interativa de horas humanas
+tktr refine --backfilled --project=<nome>
+tktr logs --tail
+tktr open                            # abre o dashboard no browser
+```
+
+> Se você nunca rodou nenhum desses, é sinal que o daemon tá funcionando perfeitamente.
+
+### Como horas faturáveis funcionam
+
+Resumindo: cada task ganha `billableHours = ((claudeHours + humanHoursEstimate) / 2) × billableFactor`, onde:
+- `claudeHours` é tempo derivado de tokens (configurável em `/settings`),
+- `humanHoursEstimate` vem do Haiku (ou manual),
+- `billableFactor` é por cliente (default 0.4) — o desconto que você aceita: nem todo tempo medido vira hora cobrada.
+
+Forecast por cliente compara horas e custo IA contra metas (mensal/semanal/anual com normalização proporcional ao período selecionado), com tolerâncias configuráveis e classificação `below`/`ok`/`above`/`no_target`.
+
+📖 **Detalhes completos** (fórmulas, defaults, baselines, FAQ): [`docs/horas-faturaveis.md`](./docs/horas-faturaveis.md).
 
 ---
 
