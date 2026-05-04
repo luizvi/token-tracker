@@ -364,9 +364,21 @@ Tem ideia, dor parecida ou caso de uso interessante? Abre uma issue ou me chama 
 Este projeto é open source e gratuito. Se ele te economizou tempo, dor de cabeça ou descobriu um cliente que tava no prejuízo, considere:
 
 - ⭐ **Dar uma estrela no repo** — ajuda outras pessoas a encontrarem.
-- 💸 **Pix (Brasil)** — chave aleatória: `28ab8119-c379-479d-bf2f-03f17eb7cfa1`
-- 💼 **LinkedIn** — [Luiz Vi](https://www.linkedin.com/in/luiz-vi/) (conecta, comenta, compartilha — alcance vale tanto quanto Pix)
+- 💼 **LinkedIn** — [Luiz Vi](https://www.linkedin.com/in/luiz-vi/) (conecta, comenta, compartilha — alcance vale tanto quanto Pix).
 - 🐛 **Issue ou PR** — feedback honesto vale mais que doação. Se algo quebrou, me conta.
+- 💸 **Pix (Brasil)** — escaneia o QR ou copia a chave abaixo.
+
+<table>
+<tr>
+<td align="center" width="200"><img src="./docs/assets/pix-qr.png" width="180" alt="QR Pix — Luiz Vinicius de Andrade" /></td>
+<td>
+<strong>Destinatário:</strong> Luiz Vinícius de Andrade (São José/SC)<br>
+<strong>Chave Pix (aleatória):</strong><br>
+<code>28ab8119-c379-479d-bf2f-03f17eb7cfa1</code><br><br>
+<sub>📱 Escaneia direto do app do banco, ou copia a chave e cola no Pix.</sub>
+</td>
+</tr>
+</table>
 
 Se você usa o tracker num contexto comercial (agência, estúdio, time), considera dar uma referência no LinkedIn ou indicar pra colegas — isso ajuda muito mais do que parece.
 
